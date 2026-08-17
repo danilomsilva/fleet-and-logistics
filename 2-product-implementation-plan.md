@@ -115,6 +115,74 @@ e2e/
 
 Unit/component tests are written alongside each milestone (not deferred to the end) — DataTable behavior, query hooks (success/error/empty), status-transition logic, and accessibility assertions on shared components.
 
+## Detailed substeps
+
+Each milestone above is broken into atomic substeps — one install/config/build/test action per step, each ending in a working, verified, committed state before moving to the next. This is the actual execution order.
+
+**1. Scaffolding**
+1.1 Scaffold Vite+React+TS template, merge into repo without touching existing md/README files
+1.2 Install base deps, verify `npm run build` works
+1.3 Add `@/*` path alias (tsconfig + vite.config), verify build
+1.4 Install & configure Tailwind CSS v4, verify build
+1.5 Clean up default template cruft (sample assets, App.css, title)
+1.6 Init shadcn/ui, verify build
+1.7 Add core shadcn primitives (dialog, alert-dialog, dropdown-menu, table, sonner, badge, skeleton, tabs, separator, tooltip)
+1.8 Install React Router (pin to Node-compatible version)
+1.9 Install TanStack Query + TanStack Table
+1.10 Install Zustand, React Hook Form + Zod, Recharts, MapLibre GL
+1.11 Install faker + MSW (dev deps)
+1.12 Set up ESLint + Prettier, verify lint passes
+1.13 Set up Vitest + RTL + jest-dom + axe, write one smoke test, verify `npm test` passes
+1.14 Set up Playwright, install browser binary, verify a trivial spec runs
+1.15 Add `.gitignore`
+
+**2. App shell & mock data foundation**
+2.1–2.6 Define types/zod schemas: Vehicle, Driver, Delivery, Maintenance record, Alert, Activity event (one entity per step)
+2.7 Seeded faker generators producing the in-memory dataset
+2.8 Wire entity relationships in the in-memory db module
+2.9 MSW bootstrap (browser worker + Node test server)
+2.10 Base MSW list/get handlers (pagination/sort/filter/search parsing)
+2.11 Base MSW mutation handler placeholders
+2.12 Wire TanStack Query client + provider
+2.13 Sidebar nav
+2.14 Topbar + user/profile menu
+2.15 Responsive drawer (Zustand store for collapse state)
+2.16 Route tree with placeholder pages for all 7 screens
+2.17 Wire AppShell as root layout
+2.18 Verify dev server: shell renders, nav works
+2.19 Tests: generators, handlers, AppShell/Sidebar (incl. axe)
+
+**3. Shared component library** *(one component + its test per step)*
+3.1 EmptyState · 3.2 ErrorState+retry · 3.3 Skeletons · 3.4 StatusBadge · 3.5 KPICard · 3.6 ConfirmDialog · 3.7 ActivityTimeline · 3.8 useUrlFilters
+3.9 DataTable: core + sorting · 3.10 pagination · 3.11 column visibility · 3.12 row selection + bulk actions · 3.13 empty/loading/error slots
+
+**4. Vehicles**
+4.1 List/get MSW handlers · 4.2 useVehicles/useVehicle hooks+tests · 4.3 Table columns+DataTable wiring · 4.4 Filters · 4.5 Search · 4.6 Detail page shell+tabs · 4.7–4.10 Overview / Maintenance / Delivery history / Activity tab content (one per step) · 4.11 Tests (incl. axe)
+
+**5. Drivers** *(mirrors Vehicles)*
+5.1 Handlers · 5.2 Hooks+tests · 5.3 Table · 5.4 Detail shell · 5.5–5.9 each detail tab · 5.10 Tests
+
+**6. Deliveries**
+6.1 List/get handlers (full filter set) · 6.2 Mutation handlers (assign/start/deliver/delay) · 6.3 Query hooks+tests · 6.4 Optimistic mutation hooks+tests · 6.5 Table columns · 6.6 URL-synced filter bar · 6.7 Search+bulk actions · 6.8 Detail info panel · 6.9 Activity timeline · 6.10 State-dependent action buttons+toasts · 6.11 Tests
+
+**7. Dashboard**
+7.1 Aggregate query hooks · 7.2 KPI cards · 7.3 Delivery-status chart+period toggle · 7.4 Fleet-status grouping · 7.5 Recent activity widget · 7.6 Top alerts widget · 7.7 Layout assembly+responsive · 7.8 Tests
+
+**8. Maintenance**
+8.1 Handlers (incl. schedule/start/complete) · 8.2 Hooks+tests · 8.3 Table · 8.4 Detail page · 8.5 Actions+ConfirmDialog · 8.6 Tests
+
+**9. Alerts**
+9.1 Handlers (incl. acknowledge/resolve) · 9.2 Optimistic hooks+tests · 9.3 List/table · 9.4 Row actions+priority indicators · 9.5 Click-through navigation · 9.6 Tests
+
+**10. Dispatch**
+10.1 Base map · 10.2–10.4 Vehicle/driver/delivery markers (one per step) · 10.5 Unassigned-deliveries panel · 10.6 Wizard state store · 10.7–10.10 Wizard steps: select delivery / driver / vehicle / review+confirm (one per step) · 10.11 Conflict prevention · 10.12 Post-assignment list transition+toast · 10.13 Tests
+
+**11. Cross-cutting passes**
+11.1 Keyboard nav audit · 11.2 Focus trapping · 11.3 aria-live regions · 11.4 Form-error announcements · 11.5–11.8 Responsive sweep (sidebar/tables/dispatch/forms, one per step) · 11.9 Virtualization if warranted
+
+**12. E2E smoke suite**
+12.1 Playwright config finalization · 12.2–12.5 Four E2E flows (one per step) · 12.6 Full verification pass (build+test+e2e green)
+
 ## Verification
 
 - `npm run dev` — manually walk each of the 5 primary screens (Dashboard, Deliveries, Vehicles, Dispatch, Drivers) confirming loading→data, empty (via a filter combo with no matches), and error (`?simulateError=1`) states render correctly.
