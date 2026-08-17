@@ -14,4 +14,6 @@ For every substep:
 
 Do not get ahead of this cadence, even when a task looks trivial or the next several substeps seem obvious. Don't combine unrelated changes into one commit. If a substep's verification fails, fix it before moving on or before committing — never commit or push a broken substep.
 
+**At the end of a full step** (after its final substep is verified, committed, and pushed), run `/compact` to optimize the context window before starting the next step.
+
 The implementation plan in `2-product-implementation-plan.md` (see "Detailed substeps") defines the ordered list of steps to execute against this rule.
