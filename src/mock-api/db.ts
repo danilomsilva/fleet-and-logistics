@@ -63,3 +63,6 @@ export function createDb(seed: number = DEFAULT_SEED) {
 }
 
 export type Db = ReturnType<typeof createDb>
+
+/** Shared mutable in-memory store consumed by MSW handlers. */
+export const db = createDb()
