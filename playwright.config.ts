@@ -6,6 +6,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
+  // MSW's service worker can take longer than the 5s default to register
+  // and activate on a cold first page load, especially under parallel
+  // worker load against a single dev server.
+  expect: {
+    timeout: 10_000,
+  },
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
