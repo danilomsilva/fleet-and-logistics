@@ -286,3 +286,65 @@ describe('DataTable row selection', () => {
     expect(results.violations).toEqual([])
   })
 })
+
+describe('DataTable loading/error/empty', () => {
+  it('renders skeleton rows and no data when isLoading', () => {
+    const { container } = render(
+      <DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} isLoading />,
+    )
+    expect(screen.queryByText('Ford Transit')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('tbody tr[aria-hidden="true"]').length).toBeGreaterThan(0)
+  })
+
+  it('renders ErrorState and calls onRetry when isError', async () => {
+    const user = userEvent.setup()
+    const onRetry = vi.fn()
+    render(
+      <DataTable
+        columns={columns}
+        data={[]}
+        getRowId={(v) => v.id}
+        isError
+        onRetry={onRetry}
+        errorTitle="Couldn't load vehicles"
+      />,
+    )
+
+    expect(screen.getByText("Couldn't load vehicles")).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it('prioritizes isLoading over isError', () => {
+    render(<DataTable columns={columns} data={[]} getRowId={(v) => v.id} isLoading isError />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('renders EmptyState when data is empty', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={[]}
+        getRowId={(v) => v.id}
+        emptyTitle="No vehicles found"
+        emptyDescription="Try adjusting your filters."
+      />,
+    )
+    expect(screen.getByText('No vehicles found')).toBeInTheDocument()
+    expect(screen.getByText('Try adjusting your filters.')).toBeInTheDocument()
+  })
+
+  it('renders rows normally when not loading, not error, and data is present', () => {
+    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />)
+    expect(screen.getByText('Ford Transit')).toBeInTheDocument()
+    expect(screen.queryByText('No results')).not.toBeInTheDocument()
+  })
+
+  it('has no detectable accessibility violations in the error state', async () => {
+    const { container } = render(
+      <DataTable columns={columns} data={[]} getRowId={(v) => v.id} isError onRetry={() => {}} />,
+    )
+    const results = await axe(container)
+    expect(results.violations).toEqual([])
+  })
+})

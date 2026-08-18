@@ -34,6 +34,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { EmptyState, type EmptyStateAction } from '@/shared/components/empty-state/EmptyState'
+import { ErrorState } from '@/shared/components/error-state/ErrorState'
+import { TableRowSkeleton } from '@/shared/components/skeletons/TableRowSkeleton'
 import { dataTableFeatures } from './data-table-features'
 
 export interface BulkAction {
@@ -61,6 +64,16 @@ export interface DataTableProps<TData extends RowData> {
   /** Adds a selection checkbox column and, when rows are selected, a bulk-action bar. */
   enableRowSelection?: boolean
   bulkActions?: BulkAction[]
+  /** Renders skeleton rows in place of data. Takes priority over error/empty. */
+  isLoading?: boolean
+  /** Renders an ErrorState in place of data. Takes priority over empty. */
+  isError?: boolean
+  onRetry?: () => void
+  errorTitle?: string
+  errorDescription?: string
+  emptyTitle?: string
+  emptyDescription?: string
+  emptyAction?: EmptyStateAction
 }
 
 const ARIA_SORT = {
@@ -81,6 +94,14 @@ export function DataTable<TData extends RowData>({
   rowCount,
   enableRowSelection = false,
   bulkActions,
+  isLoading = false,
+  isError = false,
+  onRetry,
+  errorTitle,
+  errorDescription,
+  emptyTitle = 'No results',
+  emptyDescription,
+  emptyAction,
 }: DataTableProps<TData>) {
   const tableColumns = useMemo(() => {
     if (!enableRowSelection) return columns
@@ -231,15 +252,39 @@ export function DataTable<TData extends RowData>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  <table.FlexRender cell={cell} />
-                </TableCell>
-              ))}
+          {isLoading ? (
+            <TableRowSkeleton columns={table.getVisibleFlatColumns().length} />
+          ) : isError ? (
+            <TableRow>
+              <TableCell colSpan={table.getVisibleFlatColumns().length}>
+                <ErrorState
+                  title={errorTitle}
+                  description={errorDescription}
+                  onRetry={onRetry ?? (() => {})}
+                />
+              </TableCell>
             </TableRow>
-          ))}
+          ) : data.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={table.getVisibleFlatColumns().length}>
+                <EmptyState
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  action={emptyAction}
+                />
+              </TableCell>
+            </TableRow>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
