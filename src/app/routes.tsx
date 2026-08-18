@@ -7,6 +7,7 @@ import { DispatchPage } from '@/features/dispatch/DispatchPage'
 import { DriversPage } from '@/features/drivers/DriversPage'
 import { DriverDetailPage } from '@/features/drivers/DriverDetailPage'
 import { MaintenancePage } from '@/features/maintenance/MaintenancePage'
+import { MaintenanceDetailPage } from '@/features/maintenance/MaintenanceDetailPage'
 import { VehiclesPage } from '@/features/vehicles/VehiclesPage'
 import { VehicleDetailPage } from '@/features/vehicles/VehicleDetailPage'
 import { AppShell } from './layout/AppShell'
@@ -24,6 +25,7 @@ export function AppRoutes() {
         <Route path="drivers" element={<DriversPage />} />
         <Route path="drivers/:id" element={<DriverDetailPage />} />
         <Route path="maintenance" element={<MaintenancePage />} />
+        <Route path="maintenance/:id" element={<MaintenanceDetailPage />} />
         <Route path="alerts" element={<AlertsPage />} />
       </Route>
     </Routes>

@@ -43,7 +43,6 @@ export const maintenanceHandlers = [
     return HttpResponse.json(record)
   }),
 
-  // Stub: updates status only. Full schedule/start/complete wiring lands in step 8.2.
   http.patch('/api/maintenance/:id/status', async ({ params, request }) => {
     await randomDelay()
     const record = db.maintenanceRecords.find((m) => m.id === params.id)
@@ -61,6 +60,7 @@ export const maintenanceHandlers = [
     }
 
     record.status = result.data
+    record.completionDate = result.data === 'completed' ? new Date().toISOString() : null
     return HttpResponse.json(record)
   }),
 ]

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { MaintenanceRecord } from '@/mock-api/schemas/maintenance'
 import { buildQueryString, type PaginatedResponse } from '@/shared/lib/query-params'
+import { maintenanceKeys } from './query-keys'
 
 export interface MaintenanceQueryParams {
   page?: number
@@ -10,6 +11,7 @@ export interface MaintenanceQueryParams {
   vehicleId?: string
   maintenanceType?: string
   priority?: string
+  date?: string
   q?: string
 }
 
@@ -23,7 +25,7 @@ async function fetchMaintenanceRecords(
 
 export function useMaintenanceRecords(params: MaintenanceQueryParams = {}) {
   return useQuery({
-    queryKey: ['maintenance', 'list', params],
+    queryKey: maintenanceKeys.list(params),
     queryFn: () => fetchMaintenanceRecords(params),
   })
 }
