@@ -2,7 +2,7 @@
 
 ## Context
 
-`1-product-specification.md` defines FleetOS, a portfolio-grade fleet/logistics ops dashboard (Dashboard, Dispatch, Deliveries, Vehicles, Drivers, Maintenance, Alerts). The repo is currently empty (just `.git` and the spec). The goal per spec §14 is to demonstrate sophisticated frontend engineering — complex data/state management, reusable components, accessibility, performance, and testing — not to build every conceivable fleet-management feature. This plan defines the stack, architecture, and a build order that produces full vertical slices (not layout shells followed by a data-wiring pass), so each milestone is a working, tested piece of the product.
+`1-product-specification.md` defines FleetOS, a portfolio-grade fleet/logistics ops dashboard (Dashboard, Dispatch, Deliveries, Vehicles, Drivers, Maintenance, Alerts). At the time this plan was first written, the repo was empty (just `.git` and the spec) — see "Detailed substeps" below for current progress. The goal per spec §14 is to demonstrate sophisticated frontend engineering — complex data/state management, reusable components, accessibility, performance, and testing — not to build every conceivable fleet-management feature. This plan defines the stack, architecture, and a build order that produces full vertical slices (not layout shells followed by a data-wiring pass), so each milestone is a working, tested piece of the product.
 
 **Confirmed stack decisions** (from user):
 - **Build tool / routing:** Vite + React Router
@@ -64,20 +64,28 @@ src/
       use-url-filters.ts      # zod-validated useSearchParams wrapper
     lib/
       query-client.ts
-      utils.ts
+  lib/
+    utils.ts                  # cn() helper — lives here (not shared/lib) because
+                               # shadcn/ui hardcodes this path via components.json
   mock-api/
     schemas/                  # zod schemas + TS types per entity
     generators/                # faker-based seeded dataset builders
     db.ts                      # in-memory store, seeded once
     handlers/                  # MSW request handlers per resource
-    browser.ts                 # MSW worker bootstrap (dev + test)
+    browser.ts                 # MSW worker bootstrap (browser Service Worker)
+    server.ts                  # MSW Node server (Vitest)
   test/
-    setup.ts                   # RTL + jest-axe + MSW test server wiring
+    setup.ts                   # jest-dom matchers + MSW Node server lifecycle.
+                                # axe scans are NOT globally wired here — vitest-axe's
+                                # custom matcher doesn't type-check against Vitest 4,
+                                # so each test imports axe() directly and asserts on
+                                # .violations (see step 1.13's commit for why).
 e2e/
-  dispatch-assignment.spec.ts
-  delivery-status-flow.spec.ts
-  deliveries-url-filters.spec.ts
-  alerts-acknowledge.spec.ts
+  smoke.spec.ts                # app shell + nav + mobile drawer (steps 1.14/2.18/2.19)
+  dispatch-assignment.spec.ts   # planned, step 12
+  delivery-status-flow.spec.ts  # planned, step 12
+  deliveries-url-filters.spec.ts # planned, step 12
+  alerts-acknowledge.spec.ts     # planned, step 12
 ```
 
 ## Mock API design (spec §13)
@@ -85,7 +93,7 @@ e2e/
 - REST-shaped endpoints per entity: `GET /api/vehicles?page=&pageSize=&sort=&status=&type=&driverId=&q=`, `GET /api/vehicles/:id`, `PATCH /api/deliveries/:id/status`, `POST /api/dispatch/assign`, `PATCH /api/alerts/:id`, etc. Handlers live in `mock-api/handlers/`, one file per resource, composed in `browser.ts`.
 - All handlers apply artificial latency (150–600ms randomized) so loading states are real, not instant.
 - A small in-memory `db.ts` (seeded via faker with a fixed seed for reproducibility) is mutated by PATCH/POST handlers so the app has real read-your-writes behavior across navigations.
-- One handler (vehicles list) additionally supports a `?simulateError=1` escape hatch used by a Playwright/unit test to exercise the ErrorState + retry path deterministically — not exposed in the UI.
+- **Planned, not yet built:** a `?simulateError=1` escape hatch on the vehicles list handler, to exercise the ErrorState + retry path deterministically in tests — not exposed in the UI. Add this when building the Vehicles screen (milestone 4) or the shared ErrorState component (milestone 3), whichever needs it first.
 - Query keys centralized per feature (`features/deliveries/hooks/query-keys.ts` pattern) so invalidation after mutations is explicit and consistent.
 
 ## Reusable components (build once, in Phase 3, before any full data screen)
