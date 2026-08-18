@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
+import { XCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,8 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
-import { DataTable } from '@/shared/components/data-table/DataTable'
+import { DataTable, type BulkAction } from '@/shared/components/data-table/DataTable'
 import { useDeliveries } from '../hooks/useDeliveries'
+import { useUpdateDeliveryStatus } from '../hooks/useUpdateDeliveryStatus'
 import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { createDeliveryColumns } from './columns'
@@ -66,6 +69,21 @@ export function DeliveriesTable() {
     () => createDeliveryColumns(driverNameById, vehicleNameById),
     [driverNameById, vehicleNameById],
   )
+
+  const updateStatus = useUpdateDeliveryStatus()
+  const bulkActions: BulkAction[] = [
+    {
+      label: 'Cancel selected',
+      icon: XCircle,
+      variant: 'destructive',
+      onClick: async (selectedIds) => {
+        await Promise.all(
+          selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'cancelled' })),
+        )
+        toast.success(`${selectedIds.length} delivery(ies) cancelled.`)
+      },
+    },
+  ]
 
   return (
     <div className="space-y-4">
@@ -170,6 +188,8 @@ export function DeliveriesTable() {
         pagination={pagination}
         onPaginationChange={setPagination}
         rowCount={data?.total}
+        enableRowSelection
+        bulkActions={bulkActions}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => refetch()}

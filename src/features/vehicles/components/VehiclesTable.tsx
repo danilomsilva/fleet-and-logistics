@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
+import { CircleCheck, PowerOff } from 'lucide-react'
+import { toast } from 'sonner'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,8 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
-import { DataTable } from '@/shared/components/data-table/DataTable'
+import { DataTable, type BulkAction } from '@/shared/components/data-table/DataTable'
 import { useVehicles } from '../hooks/useVehicles'
+import { useUpdateVehicleStatus } from '../hooks/useUpdateVehicleStatus'
 import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { createVehicleColumns } from './columns'
 import { vehicleStatusSchema, vehicleTypeSchema } from '@/mock-api/schemas/vehicle'
@@ -46,6 +49,30 @@ export function VehiclesTable() {
   }, [driversData])
 
   const columns = useMemo(() => createVehicleColumns(driverNameById), [driverNameById])
+
+  const updateStatus = useUpdateVehicleStatus()
+  const bulkActions: BulkAction[] = [
+    {
+      label: 'Mark offline',
+      icon: PowerOff,
+      onClick: async (selectedIds) => {
+        await Promise.all(
+          selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'offline' })),
+        )
+        toast.success(`${selectedIds.length} vehicle(s) marked offline.`)
+      },
+    },
+    {
+      label: 'Mark available',
+      icon: CircleCheck,
+      onClick: async (selectedIds) => {
+        await Promise.all(
+          selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'available' })),
+        )
+        toast.success(`${selectedIds.length} vehicle(s) marked available.`)
+      },
+    },
+  ]
 
   return (
     <div className="space-y-4">
@@ -99,6 +126,8 @@ export function VehiclesTable() {
         pagination={pagination}
         onPaginationChange={setPagination}
         rowCount={data?.total}
+        enableRowSelection
+        bulkActions={bulkActions}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => refetch()}

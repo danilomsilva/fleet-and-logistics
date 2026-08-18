@@ -59,10 +59,26 @@ test('assigning a pending delivery (with available matching vehicles) updates it
   await expect(page.getByText(/assigned successfully/)).toBeVisible()
 })
 
+test('selecting rows shows a bulk-action bar and cancelling deliveries updates their status', async ({
+  page,
+}) => {
+  await page.goto('/deliveries?status=pending')
+  await expect(page.getByRole('columnheader', { name: 'Delivery ID' })).toBeVisible()
+
+  const rows = page.locator('tbody tr')
+  await expect(rows.first().getByRole('link')).not.toHaveText('')
+
+  await rows.first().getByRole('checkbox', { name: 'Select row' }).click()
+  await expect(page.getByText('1 selected')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Cancel selected' }).click()
+  await expect(page.getByText(/cancelled/)).toBeVisible()
+})
+
 test('starting an assigned delivery moves it to in transit', async ({ page }) => {
   await page.goto('/deliveries?status=assigned')
   const rows = page.locator('tbody tr')
-  await expect(rows.first().locator('td').first()).not.toHaveText('')
+  await expect(rows.first().getByRole('link')).not.toHaveText('')
   await rows.first().getByRole('link').click()
 
   await page.getByRole('button', { name: 'Start delivery' }).click()
