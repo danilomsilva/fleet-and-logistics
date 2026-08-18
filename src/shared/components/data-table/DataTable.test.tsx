@@ -155,3 +155,38 @@ describe('DataTable pagination', () => {
     expect(onPaginationChange).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 20 })
   })
 })
+
+describe('DataTable column visibility', () => {
+  it('hides a column when it is toggled off, and shows it again when toggled back on', async () => {
+    const user = userEvent.setup()
+    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />)
+
+    expect(screen.getByRole('columnheader', { name: 'Mileage' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /columns/i }))
+    const checkbox = await screen.findByRole('menuitemcheckbox', { name: 'Mileage' })
+    await user.click(checkbox)
+
+    expect(screen.queryByRole('columnheader', { name: 'Mileage' })).not.toBeInTheDocument()
+    expect(screen.queryByText('42000')).not.toBeInTheDocument()
+
+    // Selecting a checkbox item keeps the menu open (onSelect preventDefault),
+    // so the same checkbox can be clicked again to toggle it back on.
+    await user.click(checkbox)
+
+    expect(screen.getByRole('columnheader', { name: 'Mileage' })).toBeInTheDocument()
+  })
+
+  it('has no detectable accessibility violations with the columns menu open', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /columns/i }))
+    await screen.findByRole('menuitemcheckbox', { name: 'Mileage' })
+
+    const results = await axe(container)
+    expect(results.violations).toEqual([])
+  })
+})

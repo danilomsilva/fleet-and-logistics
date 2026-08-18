@@ -5,7 +5,14 @@ import {
   type RowData,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  SlidersHorizontal,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -15,6 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { dataTableFeatures } from './data-table-features'
 
 export interface DataTableProps<TData extends RowData> {
@@ -70,8 +86,42 @@ export function DataTable<TData extends RowData>({
     },
   })
 
+  const hideableColumns = table.getAllLeafColumns().filter((column) => column.getCanHide())
+
   return (
     <div className="space-y-3">
+      {hideableColumns.length > 0 && (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="outline" size="sm">
+                  <SlidersHorizontal aria-hidden="true" />
+                  Columns
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {hideableColumns.map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={() => column.toggleVisibility()}
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    {typeof column.columnDef.header === 'string'
+                      ? column.columnDef.header
+                      : column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -119,7 +169,7 @@ export function DataTable<TData extends RowData>({
         <TableBody>
           {table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
-              {row.getAllCells().map((cell) => (
+              {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
                   <table.FlexRender cell={cell} />
                 </TableCell>

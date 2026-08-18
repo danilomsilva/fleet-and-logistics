@@ -1,4 +1,9 @@
-import { rowPaginationFeature, rowSortingFeature, tableFeatures } from '@tanstack/react-table'
+import {
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  rowSortingFeature,
+  tableFeatures,
+} from '@tanstack/react-table'
 
 /**
  * TanStack Table v9 requires a stable, explicit feature set. Screens build
@@ -13,4 +18,5 @@ import { rowPaginationFeature, rowSortingFeature, tableFeatures } from '@tanstac
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   rowPaginationFeature,
+  columnVisibilityFeature,
 })
