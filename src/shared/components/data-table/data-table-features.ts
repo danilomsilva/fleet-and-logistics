@@ -1,6 +1,7 @@
 import {
   columnVisibilityFeature,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   tableFeatures,
 } from '@tanstack/react-table'
@@ -19,4 +20,5 @@ export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   rowPaginationFeature,
   columnVisibilityFeature,
+  rowSelectionFeature,
 })

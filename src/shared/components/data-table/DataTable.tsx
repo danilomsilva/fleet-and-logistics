@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   useTable,
   type ColumnDef,
@@ -11,9 +12,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
+  type LucideIcon,
   SlidersHorizontal,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -33,6 +36,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { dataTableFeatures } from './data-table-features'
 
+export interface BulkAction {
+  label: string
+  icon?: LucideIcon
+  variant?: 'default' | 'destructive'
+  onClick: (selectedIds: string[]) => void
+}
+
 export interface DataTableProps<TData extends RowData> {
   // The value-type parameter is intentionally `any` — a column array mixes
   // columns with different TValues, matching TanStack's own
@@ -48,6 +58,9 @@ export interface DataTableProps<TData extends RowData> {
   onPaginationChange?: (pagination: PaginationState) => void
   /** Total row count across all pages, for the page-count/next-page math. */
   rowCount?: number
+  /** Adds a selection checkbox column and, when rows are selected, a bulk-action bar. */
+  enableRowSelection?: boolean
+  bulkActions?: BulkAction[]
 }
 
 const ARIA_SORT = {
@@ -66,12 +79,44 @@ export function DataTable<TData extends RowData>({
   pagination = DEFAULT_PAGINATION,
   onPaginationChange,
   rowCount,
+  enableRowSelection = false,
+  bulkActions,
 }: DataTableProps<TData>) {
+  const tableColumns = useMemo(() => {
+    if (!enableRowSelection) return columns
+
+    const selectionColumn: ColumnDef<typeof dataTableFeatures, TData> = {
+      id: 'select',
+      enableSorting: false,
+      enableHiding: false,
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={!table.getIsAllRowsSelected() && table.getIsSomeRowsSelected()}
+          onCheckedChange={(checked) => table.toggleAllRowsSelected(checked === true)}
+          aria-label="Select all rows"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(_checked, eventDetails) =>
+            row.getToggleSelectedHandler()(eventDetails.event)
+          }
+          aria-label="Select row"
+        />
+      ),
+    }
+
+    return [selectionColumn, ...columns]
+  }, [columns, enableRowSelection])
+
   const table = useTable({
     features: dataTableFeatures,
-    columns,
+    columns: tableColumns,
     data,
     getRowId,
+    enableRowSelection,
     manualSorting: true,
     state: { sorting, pagination },
     onSortingChange: (updater) => {
@@ -87,11 +132,30 @@ export function DataTable<TData extends RowData>({
   })
 
   const hideableColumns = table.getAllLeafColumns().filter((column) => column.getCanHide())
+  const selectedIds = enableRowSelection ? table.getSelectedRowIds() : []
 
   return (
     <div className="space-y-3">
-      {hideableColumns.length > 0 && (
-        <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          {enableRowSelection && bulkActions && selectedIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{selectedIds.length} selected</p>
+              {bulkActions.map((action) => (
+                <Button
+                  key={action.label}
+                  size="sm"
+                  variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
+                  onClick={() => action.onClick(selectedIds)}
+                >
+                  {action.icon && <action.icon aria-hidden="true" />}
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+        {hideableColumns.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -120,8 +184,8 @@ export function DataTable<TData extends RowData>({
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      )}
+        )}
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -168,7 +232,7 @@ export function DataTable<TData extends RowData>({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
                   <table.FlexRender cell={cell} />

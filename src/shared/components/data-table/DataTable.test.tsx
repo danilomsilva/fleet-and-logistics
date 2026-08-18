@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createColumnHelper } from '@tanstack/react-table'
+import { Trash2 } from 'lucide-react'
 import { axe } from 'vitest-axe'
 import { DataTable } from './DataTable'
 import { dataTableFeatures } from './data-table-features'
@@ -185,6 +186,101 @@ describe('DataTable column visibility', () => {
 
     await user.click(screen.getByRole('button', { name: /columns/i }))
     await screen.findByRole('menuitemcheckbox', { name: 'Mileage' })
+
+    const results = await axe(container)
+    expect(results.violations).toEqual([])
+  })
+})
+
+describe('DataTable row selection', () => {
+  const bulkActions = [
+    { label: 'Delete', icon: Trash2, variant: 'destructive' as const, onClick: vi.fn() },
+  ]
+
+  it('renders no selection checkboxes when enableRowSelection is false', () => {
+    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />)
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+  })
+
+  it('renders a select-all checkbox and one per row when enabled', () => {
+    render(
+      <DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} enableRowSelection />,
+    )
+    expect(screen.getByRole('checkbox', { name: /select all rows/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('checkbox', { name: /select row/i })).toHaveLength(2)
+  })
+
+  it('does not show the bulk-action bar until a row is selected', async () => {
+    const user = userEvent.setup()
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        enableRowSelection
+        bulkActions={bulkActions}
+      />,
+    )
+    expect(screen.queryByText(/selected/)).not.toBeInTheDocument()
+
+    await user.click(screen.getAllByRole('checkbox', { name: /select row/i })[0])
+
+    expect(screen.getByText('1 selected')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
+  it('selecting all rows checks the header checkbox and updates the count', async () => {
+    const user = userEvent.setup()
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        enableRowSelection
+        bulkActions={bulkActions}
+      />,
+    )
+
+    await user.click(screen.getByRole('checkbox', { name: /select all rows/i }))
+
+    expect(screen.getByText('2 selected')).toBeInTheDocument()
+    for (const checkbox of screen.getAllByRole('checkbox', { name: /select row/i })) {
+      expect(checkbox).toBeChecked()
+    }
+  })
+
+  it('calls the bulk action with the selected row ids', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        enableRowSelection
+        bulkActions={[{ label: 'Delete', onClick }]}
+      />,
+    )
+
+    await user.click(screen.getAllByRole('checkbox', { name: /select row/i })[1])
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(onClick).toHaveBeenCalledWith(['VH-002'])
+  })
+
+  it('has no detectable accessibility violations with selection enabled', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        enableRowSelection
+        bulkActions={bulkActions}
+      />,
+    )
+
+    await user.click(screen.getAllByRole('checkbox', { name: /select row/i })[0])
 
     const results = await axe(container)
     expect(results.violations).toEqual([])
