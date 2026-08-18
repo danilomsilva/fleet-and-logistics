@@ -38,8 +38,9 @@ src/
     routes.tsx              # route tree (React Router)
     layout/
       AppShell.tsx           # sidebar + topbar + <Outlet/>, responsive drawer
-      Sidebar.tsx
+      Sidebar.tsx             # nav links + UserMenu at the bottom (spec §2)
       UserMenu.tsx
+      Topbar.tsx              # mobile-only: drawer toggle (no profile menu — that's in Sidebar)
   features/
     dashboard/
     vehicles/
@@ -144,13 +145,14 @@ Each milestone above is broken into atomic substeps — one install/config/build
 2.10 Base MSW list/get handlers (pagination/sort/filter/search parsing)
 2.11 Base MSW mutation handler placeholders
 2.12 Wire TanStack Query client + provider
-2.13 Sidebar nav
-2.14 Topbar + user/profile menu
-2.15 Responsive drawer (Zustand store for collapse state)
-2.16 Route tree with placeholder pages for all 7 screens
-2.17 Wire AppShell as root layout
-2.18 Verify dev server: shell renders, nav works
-2.19 Tests: generators, handlers, AppShell/Sidebar (incl. axe)
+2.13 Sidebar nav (nav links only)
+2.14 UserMenu component, mounted at the bottom of the Sidebar (spec §2 — not in a Topbar)
+2.15 Topbar (mobile-only: drawer toggle button, no profile menu)
+2.16 Responsive drawer (Zustand store for collapse state, wired to the Topbar toggle)
+2.17 Route tree with placeholder pages for all 7 screens
+2.18 Wire AppShell as root layout
+2.19 Verify dev server: shell renders, nav works
+2.20 Tests: generators, handlers, AppShell/Sidebar (incl. axe)
 
 **3. Shared component library** *(one component + its test per step)*
 3.1 EmptyState · 3.2 ErrorState+retry · 3.3 Skeletons · 3.4 StatusBadge · 3.5 KPICard · 3.6 ConfirmDialog · 3.7 ActivityTimeline · 3.8 useUrlFilters
