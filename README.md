@@ -6,8 +6,8 @@ FleetOS is a fleet and logistics operations dashboard: a portfolio project demon
 
 In active development. Milestones 1 (scaffolding) and 2 (app shell & mock data foundation) are complete — the app boots to a working shell with sidebar/mobile-drawer navigation across all 7 screens, backed by a seeded, relationally-consistent mock API (MSW) with pagination/filtering/search/sort. Screens themselves are still placeholders pending Milestone 3 onward.
 
-- [`1-product-specification.md`](./1-product-specification.md) — the product spec.
-- [`2-product-implementation-plan.md`](./2-product-implementation-plan.md) — the frontend architecture and build plan (see "Detailed substeps" for progress).
+- [`docs/1-product-specification.md`](./docs/1-product-specification.md) — the product spec.
+- [`docs/2-product-implementation-plan.md`](./docs/2-product-implementation-plan.md) — the frontend architecture and build plan (see "Detailed substeps" for progress).
 
 ## Stack
 
