@@ -60,7 +60,7 @@ export function VehiclesTable() {
           value={filters.status || 'all'}
           onValueChange={(value) => setFilters({ status: !value || value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40" aria-label="Filter by status">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -76,7 +76,7 @@ export function VehiclesTable() {
           value={filters.type || 'all'}
           onValueChange={(value) => setFilters({ type: !value || value === 'all' ? '' : value })}
         >
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40" aria-label="Filter by type">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
