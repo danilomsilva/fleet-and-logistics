@@ -87,3 +87,71 @@ describe('DataTable', () => {
     expect(results.violations).toEqual([])
   })
 })
+
+describe('DataTable pagination', () => {
+  it('renders no pagination controls when onPaginationChange is not provided', () => {
+    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />)
+    expect(screen.queryByRole('button', { name: /next/i })).not.toBeInTheDocument()
+  })
+
+  it('shows the current page and total page count', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 1, pageSize: 20 }}
+        onPaginationChange={() => {}}
+        rowCount={60}
+      />,
+    )
+    expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
+  })
+
+  it('disables Previous on the first page and Next on the last page', () => {
+    const { rerender } = render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 0, pageSize: 20 }}
+        onPaginationChange={() => {}}
+        rowCount={40}
+      />,
+    )
+    expect(screen.getByRole('button', { name: /previous/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /next/i })).toBeEnabled()
+
+    rerender(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 1, pageSize: 20 }}
+        onPaginationChange={() => {}}
+        rowCount={40}
+      />,
+    )
+    expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /next/i })).toBeDisabled()
+  })
+
+  it('calls onPaginationChange with the next page index when Next is clicked', async () => {
+    const user = userEvent.setup()
+    const onPaginationChange = vi.fn()
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 0, pageSize: 20 }}
+        onPaginationChange={onPaginationChange}
+        rowCount={60}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /next/i }))
+
+    expect(onPaginationChange).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 20 })
+  })
+})

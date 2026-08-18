@@ -1,5 +1,12 @@
-import { useTable, type ColumnDef, type RowData, type SortingState } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
+import {
+  useTable,
+  type ColumnDef,
+  type PaginationState,
+  type RowData,
+  type SortingState,
+} from '@tanstack/react-table'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -20,6 +27,11 @@ export interface DataTableProps<TData extends RowData> {
   getRowId?: (row: TData) => string
   sorting?: SortingState
   onSortingChange?: (sorting: SortingState) => void
+  /** Omit to render without pagination controls (e.g. a small embedded table). */
+  pagination?: PaginationState
+  onPaginationChange?: (pagination: PaginationState) => void
+  /** Total row count across all pages, for the page-count/next-page math. */
+  rowCount?: number
 }
 
 const ARIA_SORT = {
@@ -27,12 +39,17 @@ const ARIA_SORT = {
   desc: 'descending',
 } as const
 
+const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 20 }
+
 export function DataTable<TData extends RowData>({
   columns,
   data,
   getRowId,
   sorting = [],
   onSortingChange,
+  pagination = DEFAULT_PAGINATION,
+  onPaginationChange,
+  rowCount,
 }: DataTableProps<TData>) {
   const table = useTable({
     features: dataTableFeatures,
@@ -40,69 +57,106 @@ export function DataTable<TData extends RowData>({
     data,
     getRowId,
     manualSorting: true,
-    state: { sorting },
+    state: { sorting, pagination },
     onSortingChange: (updater) => {
       const next = typeof updater === 'function' ? updater(sorting) : updater
       onSortingChange?.(next)
     },
+    manualPagination: true,
+    rowCount,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(pagination) : updater
+      onPaginationChange?.(next)
+    },
   })
 
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              const canSort = header.column.getCanSort()
-              const sortDirection = header.column.getIsSorted()
+    <div className="space-y-3">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                const canSort = header.column.getCanSort()
+                const sortDirection = header.column.getIsSorted()
 
-              return (
-                <TableHead
-                  key={header.id}
-                  aria-sort={
-                    canSort ? (sortDirection ? ARIA_SORT[sortDirection] : 'none') : undefined
-                  }
-                >
-                  {header.isPlaceholder ? null : canSort ? (
-                    <button
-                      type="button"
-                      onClick={header.column.getToggleSortingHandler()}
-                      className="flex items-center gap-1 font-medium hover:text-foreground"
-                    >
+                return (
+                  <TableHead
+                    key={header.id}
+                    aria-sort={
+                      canSort ? (sortDirection ? ARIA_SORT[sortDirection] : 'none') : undefined
+                    }
+                  >
+                    {header.isPlaceholder ? null : canSort ? (
+                      <button
+                        type="button"
+                        onClick={header.column.getToggleSortingHandler()}
+                        className="flex items-center gap-1 font-medium hover:text-foreground"
+                      >
+                        <table.FlexRender header={header} />
+                        {sortDirection === 'asc' && (
+                          <ArrowUp aria-hidden="true" className="size-3.5" />
+                        )}
+                        {sortDirection === 'desc' && (
+                          <ArrowDown aria-hidden="true" className="size-3.5" />
+                        )}
+                        {!sortDirection && (
+                          <ChevronsUpDown
+                            aria-hidden="true"
+                            className="size-3.5 text-muted-foreground/50"
+                          />
+                        )}
+                      </button>
+                    ) : (
                       <table.FlexRender header={header} />
-                      {sortDirection === 'asc' && (
-                        <ArrowUp aria-hidden="true" className="size-3.5" />
-                      )}
-                      {sortDirection === 'desc' && (
-                        <ArrowDown aria-hidden="true" className="size-3.5" />
-                      )}
-                      {!sortDirection && (
-                        <ChevronsUpDown
-                          aria-hidden="true"
-                          className="size-3.5 text-muted-foreground/50"
-                        />
-                      )}
-                    </button>
-                  ) : (
-                    <table.FlexRender header={header} />
-                  )}
-                </TableHead>
-              )
-            })}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getAllCells().map((cell) => (
-              <TableCell key={cell.id}>
-                <table.FlexRender cell={cell} />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                    )}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getAllCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  <table.FlexRender cell={cell} />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {onPaginationChange && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {table.getPageCount() === 0 ? 0 : pagination.pageIndex + 1} of{' '}
+            {table.getPageCount()}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft aria-hidden="true" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+              <ChevronRight aria-hidden="true" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
