@@ -66,6 +66,22 @@ describe('generateDeliveries', () => {
       }
     }
   })
+
+  it('never assigns an offline driver to a currently-active delivery', () => {
+    const vehicles = generateVehicles(10)
+    const drivers = generateDrivers(10)
+    const deliveries = generateDeliveries(60, { vehicles, drivers })
+
+    const activeStatuses = ['assigned', 'in_transit', 'delayed']
+    const activeDeliveries = deliveries.filter((d) => activeStatuses.includes(d.status))
+    expect(activeDeliveries.length).toBeGreaterThan(0)
+
+    for (const delivery of activeDeliveries) {
+      const driver = drivers.find((d) => d.id === delivery.driverId)
+      expect(driver).toBeDefined()
+      expect(driver?.status).not.toBe('offline')
+    }
+  })
 })
 
 describe('generateMaintenanceRecords', () => {
