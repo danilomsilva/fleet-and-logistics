@@ -6,6 +6,7 @@ import { DispatchPage } from '@/features/dispatch/DispatchPage'
 import { DriversPage } from '@/features/drivers/DriversPage'
 import { MaintenancePage } from '@/features/maintenance/MaintenancePage'
 import { VehiclesPage } from '@/features/vehicles/VehiclesPage'
+import { VehicleDetailPage } from '@/features/vehicles/VehicleDetailPage'
 import { AppShell } from './layout/AppShell'
 
 export function AppRoutes() {
@@ -16,6 +17,7 @@ export function AppRoutes() {
         <Route path="dispatch" element={<DispatchPage />} />
         <Route path="deliveries" element={<DeliveriesPage />} />
         <Route path="vehicles" element={<VehiclesPage />} />
+        <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="drivers" element={<DriversPage />} />
         <Route path="maintenance" element={<MaintenancePage />} />
         <Route path="alerts" element={<AlertsPage />} />
