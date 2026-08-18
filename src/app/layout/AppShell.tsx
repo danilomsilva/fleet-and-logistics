@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Outlet } from 'react-router'
 import { MobileSidebarDrawer } from './MobileSidebarDrawer'
 import { Sidebar } from './Sidebar'
@@ -37,7 +37,9 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar isOpen={isDrawerOpen} onMenuClick={toggleDrawer} />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto">
-          <Outlet />
+          <Suspense fallback={<div role="status" aria-label="Loading page" className="p-6" />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <MobileSidebarDrawer />

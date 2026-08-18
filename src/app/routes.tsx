@@ -1,16 +1,44 @@
+import { lazy } from 'react'
 import { Route, Routes } from 'react-router'
-import { AlertsPage } from '@/features/alerts/AlertsPage'
-import { DashboardPage } from '@/features/dashboard/DashboardPage'
-import { DeliveriesPage } from '@/features/deliveries/DeliveriesPage'
-import { DeliveryDetailPage } from '@/features/deliveries/DeliveryDetailPage'
-import { DispatchPage } from '@/features/dispatch/DispatchPage'
-import { DriversPage } from '@/features/drivers/DriversPage'
-import { DriverDetailPage } from '@/features/drivers/DriverDetailPage'
-import { MaintenancePage } from '@/features/maintenance/MaintenancePage'
-import { MaintenanceDetailPage } from '@/features/maintenance/MaintenanceDetailPage'
-import { VehiclesPage } from '@/features/vehicles/VehiclesPage'
-import { VehicleDetailPage } from '@/features/vehicles/VehicleDetailPage'
 import { AppShell } from './layout/AppShell'
+
+const AlertsPage = lazy(() =>
+  import('@/features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage })),
+)
+const DashboardPage = lazy(() =>
+  import('@/features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+)
+const DeliveriesPage = lazy(() =>
+  import('@/features/deliveries/DeliveriesPage').then((m) => ({ default: m.DeliveriesPage })),
+)
+const DeliveryDetailPage = lazy(() =>
+  import('@/features/deliveries/DeliveryDetailPage').then((m) => ({
+    default: m.DeliveryDetailPage,
+  })),
+)
+const DispatchPage = lazy(() =>
+  import('@/features/dispatch/DispatchPage').then((m) => ({ default: m.DispatchPage })),
+)
+const DriversPage = lazy(() =>
+  import('@/features/drivers/DriversPage').then((m) => ({ default: m.DriversPage })),
+)
+const DriverDetailPage = lazy(() =>
+  import('@/features/drivers/DriverDetailPage').then((m) => ({ default: m.DriverDetailPage })),
+)
+const MaintenancePage = lazy(() =>
+  import('@/features/maintenance/MaintenancePage').then((m) => ({ default: m.MaintenancePage })),
+)
+const MaintenanceDetailPage = lazy(() =>
+  import('@/features/maintenance/MaintenanceDetailPage').then((m) => ({
+    default: m.MaintenanceDetailPage,
+  })),
+)
+const VehiclesPage = lazy(() =>
+  import('@/features/vehicles/VehiclesPage').then((m) => ({ default: m.VehiclesPage })),
+)
+const VehicleDetailPage = lazy(() =>
+  import('@/features/vehicles/VehicleDetailPage').then((m) => ({ default: m.VehicleDetailPage })),
+)
 
 export function AppRoutes() {
   return (

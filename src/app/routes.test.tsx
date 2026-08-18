@@ -15,7 +15,7 @@ const CASES: [path: string, heading: string][] = [
 ]
 
 describe('AppRoutes', () => {
-  it.each(CASES)('path "%s" renders the "%s" heading', (path, heading) => {
+  it.each(CASES)('path "%s" renders the "%s" heading', async (path, heading) => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     render(
       <QueryClientProvider client={queryClient}>
@@ -24,6 +24,8 @@ describe('AppRoutes', () => {
         </MemoryRouter>
       </QueryClientProvider>,
     )
-    expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: heading }, { timeout: 5000 }),
+    ).toBeInTheDocument()
   })
 })
