@@ -2,6 +2,7 @@ import type { HttpHandler } from 'msw'
 import { activityHandlers } from './activity'
 import { alertHandlers } from './alerts'
 import { deliveryHandlers } from './deliveries'
+import { dispatchHandlers } from './dispatch'
 import { driverHandlers } from './drivers'
 import { maintenanceHandlers } from './maintenance'
 import { vehicleHandlers } from './vehicles'
@@ -13,4 +14,5 @@ export const handlers: HttpHandler[] = [
   ...maintenanceHandlers,
   ...alertHandlers,
   ...activityHandlers,
+  ...dispatchHandlers,
 ]

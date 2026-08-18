@@ -9,6 +9,7 @@ import {
   randomDelay,
 } from './query-utils'
 import type { Delivery } from '../schemas/delivery'
+import { deliveryStatusSchema } from '../schemas/delivery'
 
 function applyDateFilter(items: Delivery[], url: URL): Delivery[] {
   const date = url.searchParams.get('date')
@@ -43,6 +44,24 @@ export const deliveryHandlers = [
     if (!delivery) {
       return HttpResponse.json({ message: `Delivery ${params.id} not found` }, { status: 404 })
     }
+    return HttpResponse.json(delivery)
+  }),
+
+  // Stub: updates status only. Full validation/optimistic-update wiring lands in step 6.2.
+  http.patch('/api/deliveries/:id/status', async ({ params, request }) => {
+    await randomDelay()
+    const delivery = db.deliveries.find((d) => d.id === params.id)
+    if (!delivery) {
+      return HttpResponse.json({ message: `Delivery ${params.id} not found` }, { status: 404 })
+    }
+
+    const body = await request.json()
+    const result = deliveryStatusSchema.safeParse((body as { status?: unknown })?.status)
+    if (!result.success) {
+      return HttpResponse.json({ message: 'Invalid delivery status' }, { status: 400 })
+    }
+
+    delivery.status = result.data
     return HttpResponse.json(delivery)
   }),
 ]

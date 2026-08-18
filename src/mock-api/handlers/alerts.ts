@@ -9,6 +9,7 @@ import {
   randomDelay,
 } from './query-utils'
 import type { Alert } from '../schemas/alert'
+import { alertStatusSchema } from '../schemas/alert'
 
 export const alertHandlers = [
   http.get('/api/alerts', async ({ request }) => {
@@ -29,6 +30,24 @@ export const alertHandlers = [
     if (!alert) {
       return HttpResponse.json({ message: `Alert ${params.id} not found` }, { status: 404 })
     }
+    return HttpResponse.json(alert)
+  }),
+
+  // Stub: updates status only. Full acknowledge/resolve wiring lands in step 9.2.
+  http.patch('/api/alerts/:id', async ({ params, request }) => {
+    await randomDelay()
+    const alert = db.alerts.find((a) => a.id === params.id)
+    if (!alert) {
+      return HttpResponse.json({ message: `Alert ${params.id} not found` }, { status: 404 })
+    }
+
+    const body = await request.json()
+    const result = alertStatusSchema.safeParse((body as { status?: unknown })?.status)
+    if (!result.success) {
+      return HttpResponse.json({ message: 'Invalid alert status' }, { status: 400 })
+    }
+
+    alert.status = result.data
     return HttpResponse.json(alert)
   }),
 ]

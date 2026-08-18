@@ -9,6 +9,7 @@ import {
   randomDelay,
 } from './query-utils'
 import type { MaintenanceRecord } from '../schemas/maintenance'
+import { maintenanceStatusSchema } from '../schemas/maintenance'
 
 function applyDateFilter(items: MaintenanceRecord[], url: URL): MaintenanceRecord[] {
   const date = url.searchParams.get('date')
@@ -39,6 +40,27 @@ export const maintenanceHandlers = [
         { status: 404 },
       )
     }
+    return HttpResponse.json(record)
+  }),
+
+  // Stub: updates status only. Full schedule/start/complete wiring lands in step 8.2.
+  http.patch('/api/maintenance/:id/status', async ({ params, request }) => {
+    await randomDelay()
+    const record = db.maintenanceRecords.find((m) => m.id === params.id)
+    if (!record) {
+      return HttpResponse.json(
+        { message: `Maintenance record ${params.id} not found` },
+        { status: 404 },
+      )
+    }
+
+    const body = await request.json()
+    const result = maintenanceStatusSchema.safeParse((body as { status?: unknown })?.status)
+    if (!result.success) {
+      return HttpResponse.json({ message: 'Invalid maintenance status' }, { status: 400 })
+    }
+
+    record.status = result.data
     return HttpResponse.json(record)
   }),
 ]
