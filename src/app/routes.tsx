@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { DeliveriesPage } from '@/features/deliveries/DeliveriesPage'
+import { DeliveryDetailPage } from '@/features/deliveries/DeliveryDetailPage'
 import { DispatchPage } from '@/features/dispatch/DispatchPage'
 import { DriversPage } from '@/features/drivers/DriversPage'
 import { DriverDetailPage } from '@/features/drivers/DriverDetailPage'
@@ -17,6 +18,7 @@ export function AppRoutes() {
         <Route index element={<DashboardPage />} />
         <Route path="dispatch" element={<DispatchPage />} />
         <Route path="deliveries" element={<DeliveriesPage />} />
+        <Route path="deliveries/:id" element={<DeliveryDetailPage />} />
         <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="drivers" element={<DriversPage />} />

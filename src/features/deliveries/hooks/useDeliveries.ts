@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Delivery } from '@/mock-api/schemas/delivery'
 import { buildQueryString, type PaginatedResponse } from '@/shared/lib/query-params'
+import { deliveryKeys } from './query-keys'
 
 export interface DeliveriesQueryParams {
   page?: number
@@ -25,7 +26,7 @@ async function fetchDeliveries(
 
 export function useDeliveries(params: DeliveriesQueryParams = {}) {
   return useQuery({
-    queryKey: ['deliveries', 'list', params],
+    queryKey: deliveryKeys.list(params),
     queryFn: () => fetchDeliveries(params),
   })
 }

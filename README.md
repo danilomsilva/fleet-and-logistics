@@ -4,7 +4,7 @@ FleetOS is a fleet and logistics operations dashboard: a portfolio project demon
 
 ## Status
 
-In active development. Milestones 1–3 are complete: scaffolding, the app shell (sidebar/mobile-drawer navigation across all 7 screens) backed by a seeded, relationally-consistent mock API (MSW) with pagination/filtering/search/sort, and the shared component library (EmptyState, ErrorState, Skeletons, StatusBadge, KPICard, ConfirmDialog, ActivityTimeline, useUrlFilters, and DataTable with sorting/pagination/column visibility/row selection/bulk actions/loading-error-empty states). Screens themselves are still placeholders pending Milestone 4 onward.
+In active development. Milestones 1–6 are complete: scaffolding, the app shell (sidebar/mobile-drawer navigation across all 7 screens) backed by a seeded, relationally-consistent mock API (MSW) with pagination/filtering/search/sort, the shared component library (EmptyState, ErrorState, Skeletons, StatusBadge, KPICard, ConfirmDialog, ActivityTimeline, useUrlFilters, and DataTable with sorting/pagination/column visibility/row selection/bulk actions/loading-error-empty states), and full vertical slices for Vehicles, Drivers, and Deliveries (tables with URL-synced filters, detail pages, state-dependent actions with optimistic mutations and toast feedback). Dashboard, Maintenance, Alerts, and Dispatch remain, per Milestones 7–10.
 
 - [`docs/1-product-specification.md`](./docs/1-product-specification.md) — the product spec.
 - [`docs/2-product-implementation-plan.md`](./docs/2-product-implementation-plan.md) — the frontend architecture and build plan (see "Detailed substeps" for progress).
