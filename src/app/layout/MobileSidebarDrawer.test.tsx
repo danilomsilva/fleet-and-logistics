@@ -7,11 +7,21 @@ import { MobileSidebarDrawer } from './MobileSidebarDrawer'
 import { Topbar } from './Topbar'
 import { useSidebarDrawerStore } from './sidebar-store'
 
+function Harness() {
+  const isOpen = useSidebarDrawerStore((state) => state.isOpen)
+  const toggle = useSidebarDrawerStore((state) => state.toggle)
+  return (
+    <>
+      <Topbar isOpen={isOpen} onMenuClick={toggle} />
+      <MobileSidebarDrawer />
+    </>
+  )
+}
+
 function renderShell() {
   return render(
     <MemoryRouter>
-      <Topbar onMenuClick={() => useSidebarDrawerStore.getState().toggle()} />
-      <MobileSidebarDrawer />
+      <Harness />
     </MemoryRouter>,
   )
 }
@@ -29,11 +39,13 @@ describe('MobileSidebarDrawer + Topbar wiring', () => {
   it('opens the drawer and shows nav links when the Topbar menu button is clicked', async () => {
     const user = userEvent.setup()
     renderShell()
+    const menuButton = screen.getByRole('button', { name: /open navigation menu/i })
 
-    await user.click(screen.getByRole('button', { name: /open navigation menu/i }))
+    await user.click(menuButton)
 
     expect(await screen.findByRole('link', { name: 'Dashboard' })).toBeInTheDocument()
     expect(useSidebarDrawerStore.getState().isOpen).toBe(true)
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('closes the drawer via its close button', async () => {

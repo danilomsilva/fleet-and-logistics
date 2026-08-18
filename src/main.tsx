@@ -11,7 +11,7 @@ async function enableMocking() {
   return worker.start({ onUnhandledRequest: 'bypass' })
 }
 
-enableMocking().then(() => {
+function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
@@ -21,4 +21,19 @@ enableMocking().then(() => {
       </QueryClientProvider>
     </StrictMode>,
   )
-})
+}
+
+function renderMockingFailure(error: unknown) {
+  console.error('Failed to start the mock API worker:', error)
+  const root = document.getElementById('root')!
+  root.innerHTML = `
+    <div style="display:flex;min-height:100svh;align-items:center;justify-content:center;padding:2rem;font-family:system-ui,sans-serif;text-align:center;">
+      <div>
+        <h1 style="font-size:1.25rem;font-weight:600;margin-bottom:0.5rem;">FleetOS couldn't start</h1>
+        <p style="color:#71717a;">The mock API failed to initialize. Try reloading the page.</p>
+      </div>
+    </div>
+  `
+}
+
+enableMocking().then(renderApp).catch(renderMockingFailure)

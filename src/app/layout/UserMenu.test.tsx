@@ -11,6 +11,11 @@ describe('UserMenu', () => {
     expect(screen.getByText('Dispatch Manager')).toBeInTheDocument()
   })
 
+  it('gives the trigger a concise accessible name', () => {
+    render(<UserMenu />)
+    expect(screen.getByRole('button', { name: 'Account menu' })).toBeInTheDocument()
+  })
+
   it('opens the menu with Profile, Settings, and Log out actions', async () => {
     const user = userEvent.setup()
     render(<UserMenu />)

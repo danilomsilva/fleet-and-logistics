@@ -8,7 +8,7 @@ export function MobileSidebarDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(next) => !next && close()}>
-      <SheetContent side="left" className="p-0">
+      <SheetContent id="mobile-sidebar-drawer" side="left" className="p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <Sidebar />
       </SheetContent>
