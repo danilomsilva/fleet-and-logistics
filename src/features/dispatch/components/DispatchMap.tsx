@@ -1,9 +1,21 @@
 import { useEffect, useRef } from 'react'
-import { LngLatBounds, Map as MapLibreMap, Marker, NavigationControl, Popup } from 'maplibre-gl'
+import {
+  LngLatBounds,
+  Map as MapLibreMap,
+  Marker,
+  NavigationControl,
+  Popup,
+  setWorkerUrl,
+} from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Vehicle, VehicleStatus } from '@/mock-api/schemas/vehicle'
 import type { Delivery } from '@/mock-api/schemas/delivery'
 import { VEHICLE_STATUS_CONFIG } from '@/features/vehicles/vehicle-status-config'
+
+// Copied alongside its sibling maplibre-gl-shared.mjs by vite-plugin-static-copy
+// (see vite.config.ts) — without both files present together, tile parsing
+// silently fails and only the workerless background layer paints.
+setWorkerUrl(`${import.meta.env.BASE_URL}maplibre/maplibre-gl-worker.mjs`)
 
 const VEHICLE_STATUS_COLOR: Record<VehicleStatus, string> = {
   available: '#059669',

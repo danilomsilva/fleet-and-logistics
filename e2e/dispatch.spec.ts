@@ -7,6 +7,28 @@ test('Dispatch shows the map and the unassigned deliveries panel', async ({ page
   await expect(page.getByRole('img', { name: /Map of fleet vehicles/ })).toBeVisible()
 })
 
+test('the MapLibre worker loads and actually fetches basemap tiles (not just the background layer)', async ({
+  page,
+}) => {
+  // Regression test: maplibre-gl-worker.mjs has its own relative import
+  // (./maplibre-gl-shared.mjs) that a plain `?url` import silently breaks —
+  // the worker gets created, then dies with no visible error, and only the
+  // workerless background paint layer renders (no land/borders/labels).
+  const tileRequests: string[] = []
+  page.on('response', (res) => {
+    if (res.url().includes('.pbf') && res.url().includes('demotiles')) {
+      tileRequests.push(res.url())
+    }
+  })
+
+  await page.goto('/dispatch')
+  await expect(page.getByRole('img', { name: /Map of fleet vehicles/ })).toBeVisible()
+  await expect.poll(() => tileRequests.length, { timeout: 10000 }).toBeGreaterThan(0)
+
+  const workers = page.workers()
+  expect(workers.some((w) => w.url().includes('maplibre-gl-worker'))).toBe(true)
+})
+
 test('assigning a delivery through the wizard walks driver -> vehicle -> review and confirms', async ({
   page,
 }) => {
