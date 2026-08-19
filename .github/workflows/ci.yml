@@ -7,19 +7,11 @@ on:
 
 jobs:
   verify:
-    # Pinned rather than ubuntu-latest: newer runner images have shown
-    # apt-get hanging on an interactive needrestart prompt during
-    # `playwright install --with-deps`, with no TTY to answer it — the step
-    # never fails, it just holds the runner indefinitely. The env vars below
-    # are the standard fix, but this is kept as a second line of defense.
     runs-on: ubuntu-22.04
     # Hard ceiling so a hang fails fast instead of holding a runner (and this
     # account's concurrent-job slot) for hours — the default job timeout is
     # 6 hours. Every step here normally finishes well under 10 minutes total.
     timeout-minutes: 15
-    env:
-      DEBIAN_FRONTEND: noninteractive
-      NEEDRESTART_MODE: a
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,5 +23,11 @@ jobs:
       - run: npm run format:check
       - run: npm run test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      # No --with-deps: that runs apt-get to install OS-level system
+      # libraries, which hung indefinitely on this runner image (apt-get
+      # waiting on an interactive prompt with no TTY to answer it — setting
+      # DEBIAN_FRONTEND/NEEDRESTART_MODE did not resolve it). GitHub's
+      # ubuntu-22.04 image already ships Chromium's required system
+      # libraries, so the browser binary alone is enough.
+      - run: npx playwright install chromium
       - run: npm run test:e2e
