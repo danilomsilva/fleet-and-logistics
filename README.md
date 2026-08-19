@@ -7,7 +7,7 @@
 [![CI](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/ci.yml/badge.svg)](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/ci.yml)
 [![Deploy to GitHub Pages](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/deploy.yml/badge.svg)](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/deploy.yml)
 ![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-166%20unit%20%2B%2031%20e2e-brightgreen)
+![Tests](https://img.shields.io/badge/tests-168%20unit%20%2B%2031%20e2e-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-78%25%20statements-brightgreen)
 
 <p>
@@ -22,7 +22,7 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 ## Engineering highlights
 
 - **TypeScript strict mode, zero errors** across the app, the mock API layer, and the Playwright test suite (three separate `tsconfig`s, all checked in CI).
-- **166 Vitest unit/component tests + 31 Playwright e2e tests**, ~78% statement coverage on application code (`npm run test:coverage`). Every major page and dialog is also scanned with `axe-core` for accessibility violations as part of the unit suite.
+- **168 Vitest unit/component tests + 31 Playwright e2e tests**, ~78% statement coverage on application code (`npm run test:coverage`). Every major page and dialog is also scanned with `axe-core` for accessibility violations as part of the unit suite.
 - **CI on every push and PR** — lint, typecheck (including e2e specs), unit tests, production build, and the full e2e suite, via [GitHub Actions](.github/workflows/ci.yml).
 - **Route-level code splitting**: the initial bundle is ~326 KB gzipped; MapLibre GL (~250 KB gzipped) and Recharts load only when their own routes are visited.
 - **Accessibility built in, not retrofitted**: every status is communicated by icon + text (never color alone), all interactive controls have accessible names, focus-visible rings and a skip link are present, and the data table's sort/pagination/selection controls are fully keyboard-operable.
@@ -63,7 +63,7 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 ## Testing & quality
 
 ```
-npm run test           # 166 unit/component tests (Vitest + RTL), incl. axe accessibility checks
+npm run test           # 168 unit/component tests (Vitest + RTL), incl. axe accessibility checks
 npm run test:coverage  # same, with a coverage report
 npm run test:e2e       # 31 Playwright e2e tests covering every screen's critical flows
 npm run lint           # ESLint + a full TypeScript check of the e2e suite
@@ -94,3 +94,7 @@ Every push to `main` deploys to GitHub Pages via [`.github/workflows/deploy.yml`
 
 - [`docs/1-product-specification.md`](docs/1-product-specification.md) — the product spec this was built against.
 - [`docs/2-product-implementation-plan.md`](docs/2-product-implementation-plan.md) — architecture decisions, build order, and the full milestone-by-milestone execution log.
+
+## License
+
+[MIT](LICENSE)

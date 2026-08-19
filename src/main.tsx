@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router'
 import { queryClient } from '@/shared/lib/query-client'
 import { Toaster } from '@/components/ui/sonner'
 import { AppRoutes } from './app/routes'
+import { ErrorBoundary } from './app/ErrorBoundary'
 import './index.css'
 
 async function enableMocking() {
@@ -20,12 +21,14 @@ async function enableMocking() {
 function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <AppRoutes />
-        </BrowserRouter>
-        <Toaster />
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <AppRoutes />
+          </BrowserRouter>
+          <Toaster />
+        </QueryClientProvider>
+      </ErrorBoundary>
     </StrictMode>,
   )
 }
