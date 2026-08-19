@@ -13,7 +13,7 @@ export function UnassignedDeliveriesPanel() {
   const deliveries = data?.data ?? []
 
   return (
-    <div className="flex h-full flex-col gap-3 rounded-lg border p-4">
+    <div className="flex h-full min-h-0 flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium">Unassigned deliveries</h2>
         <span className="text-xs text-muted-foreground">{data?.total ?? 0}</span>
