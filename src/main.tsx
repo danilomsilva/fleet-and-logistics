@@ -9,14 +9,19 @@ import './index.css'
 
 async function enableMocking() {
   const { worker } = await import('./mock-api/browser')
-  return worker.start({ onUnhandledRequest: 'bypass' })
+  return worker.start({
+    onUnhandledRequest: 'bypass',
+    // Respects the /<repo-name>/ subpath the GitHub Pages build is served
+    // from (see vite.config.ts) — otherwise the worker script 404s there.
+    serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
+  })
 }
 
 function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <AppRoutes />
         </BrowserRouter>
         <Toaster />

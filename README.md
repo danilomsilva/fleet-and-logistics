@@ -28,3 +28,9 @@ npm run format:check  # Prettier check
 npm run test        # Vitest unit/component suite
 npm run test:e2e     # Playwright end-to-end suite
 ```
+
+## Deployment
+
+Every push to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`, at `https://danilomsilva.github.io/fleet-and-logistics/`. Since the app is client-only (Vite + MSW, no real backend), a static host works as-is: the workflow builds with `GH_PAGES_BASE=/fleet-and-logistics/` (which `vite.config.ts` reads to set `base`, and `main.tsx` reads to set the router `basename` and MSW's service-worker URL — all default back to `/` for local dev), and copies `index.html` to `404.html` so direct loads of any route fall back to the client-side router.
+
+First-time setup: enable Pages in the repo's Settings → Pages, with **Source: GitHub Actions**.

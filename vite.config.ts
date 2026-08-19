@@ -5,6 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Only set for the GitHub Pages build (see .github/workflows/deploy.yml),
+  // since the app is served from a /<repo-name>/ subpath there. Local dev,
+  // preview, and test all keep the default root base.
+  base: process.env.GH_PAGES_BASE ?? '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
