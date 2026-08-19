@@ -10,15 +10,16 @@ test('Vehicles table renders data and search filters it', async ({ page }) => {
   const initialCount = await rows.count()
   expect(initialCount).toBeGreaterThan(0)
 
-  const firstVehicleName = await firstNameLink.innerText()
-  await page.getByPlaceholder('Search vehicles…').fill(firstVehicleName)
-  await expect(page.locator('tbody').getByText(firstVehicleName)).toBeVisible()
+  const firstRegistration = await rows.first().locator('td').nth(2).innerText()
+  await page.getByPlaceholder('Search vehicles…').fill(firstRegistration)
+  await expect(page.locator('tbody tr')).toHaveCount(1)
+  await expect(page.locator('tbody').getByText(firstRegistration)).toBeVisible()
 })
 
 test('Vehicles status filter narrows results and updates the URL', async ({ page }) => {
   await page.goto('/vehicles')
   await page.getByRole('combobox').first().click()
-  await page.getByRole('option', { name: 'available', exact: true }).click()
+  await page.getByRole('option', { name: 'Available', exact: true }).click()
 
   await expect(page).toHaveURL(/status=available/)
 })
@@ -31,7 +32,7 @@ test('clicking a vehicle name link navigates to its detail route', async ({ page
   await expect(page).toHaveURL(new RegExp(href!))
 })
 
-test('selecting rows shows a bulk-action bar and marking vehicles offline updates their status', async ({
+test('selecting rows shows a bulk-action bar and marking vehicles broken updates their status', async ({
   page,
 }) => {
   await page.goto('/vehicles?status=available')
@@ -43,8 +44,8 @@ test('selecting rows shows a bulk-action bar and marking vehicles offline update
   await rows.first().getByRole('checkbox', { name: 'Select row' }).click()
   await expect(page.getByText('1 selected')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Mark offline' }).click()
-  await expect(page.getByText(/marked offline/)).toBeVisible()
+  await page.getByRole('button', { name: 'Mark broken' }).click()
+  await expect(page.getByText(/marked broken/)).toBeVisible()
 })
 
 test('adding, editing, and deleting a vehicle works end to end', async ({ page }) => {

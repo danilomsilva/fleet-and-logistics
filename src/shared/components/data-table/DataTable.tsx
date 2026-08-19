@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   useTable,
   type ColumnDef,
   type PaginationState,
   type RowData,
+  type RowSelectionState,
   type SortingState,
 } from '@tanstack/react-table'
 import {
@@ -17,6 +18,13 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -64,6 +72,11 @@ export interface DataTableProps<TData extends RowData> {
   /** Adds a selection checkbox column and, when rows are selected, a bulk-action bar. */
   enableRowSelection?: boolean
   bulkActions?: BulkAction[]
+  /** Controlled selection state — pass both to clear selection after a bulk action completes. */
+  rowSelection?: RowSelectionState
+  onRowSelectionChange?: (rowSelection: RowSelectionState) => void
+  /** Shows the "Columns" visibility-toggle dropdown. Off by default. */
+  showColumnToggle?: boolean
   /** Renders skeleton rows in place of data. Takes priority over error/empty. */
   isLoading?: boolean
   /** Renders an ErrorState in place of data. Takes priority over empty. */
@@ -81,7 +94,23 @@ const ARIA_SORT = {
   desc: 'descending',
 } as const
 
-const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 20 }
+const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 25 }
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50]
+const PAGE_SIZE_ITEMS = Object.fromEntries(PAGE_SIZE_OPTIONS.map((size) => [size, String(size)]))
+
+const MAX_VISIBLE_PAGES = 5
+
+/** Up to `MAX_VISIBLE_PAGES` consecutive page indices, centered on the current page. */
+function getVisiblePageIndices(currentPageIndex: number, pageCount: number): number[] {
+  if (pageCount <= MAX_VISIBLE_PAGES) {
+    return Array.from({ length: pageCount }, (_, i) => i)
+  }
+  let start = Math.max(0, currentPageIndex - Math.floor(MAX_VISIBLE_PAGES / 2))
+  const end = Math.min(pageCount - 1, start + MAX_VISIBLE_PAGES - 1)
+  start = Math.max(0, end - MAX_VISIBLE_PAGES + 1)
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+}
 
 export function DataTable<TData extends RowData>({
   columns,
@@ -94,6 +123,9 @@ export function DataTable<TData extends RowData>({
   rowCount,
   enableRowSelection = false,
   bulkActions,
+  rowSelection: rowSelectionProp,
+  onRowSelectionChange: onRowSelectionChangeProp,
+  showColumnToggle = false,
   isLoading = false,
   isError = false,
   onRetry,
@@ -103,6 +135,9 @@ export function DataTable<TData extends RowData>({
   emptyDescription,
   emptyAction,
 }: DataTableProps<TData>) {
+  const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({})
+  const rowSelection = rowSelectionProp ?? internalRowSelection
+
   const tableColumns = useMemo(() => {
     if (!enableRowSelection) return columns
 
@@ -139,7 +174,7 @@ export function DataTable<TData extends RowData>({
     getRowId,
     enableRowSelection,
     manualSorting: true,
-    state: { sorting, pagination },
+    state: { sorting, pagination, rowSelection },
     onSortingChange: (updater) => {
       const next = typeof updater === 'function' ? updater(sorting) : updater
       onSortingChange?.(next)
@@ -149,6 +184,11 @@ export function DataTable<TData extends RowData>({
     onPaginationChange: (updater) => {
       const next = typeof updater === 'function' ? updater(pagination) : updater
       onPaginationChange?.(next)
+    },
+    onRowSelectionChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(rowSelection) : updater
+      if (onRowSelectionChangeProp) onRowSelectionChangeProp(next)
+      else setInternalRowSelection(next)
     },
   })
 
@@ -176,7 +216,7 @@ export function DataTable<TData extends RowData>({
             </div>
           )}
         </div>
-        {hideableColumns.length > 0 && (
+        {showColumnToggle && hideableColumns.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -230,10 +270,10 @@ export function DataTable<TData extends RowData>({
                       >
                         <table.FlexRender header={header} />
                         {sortDirection === 'asc' && (
-                          <ArrowUp aria-hidden="true" className="size-3.5" />
+                          <ArrowDown aria-hidden="true" className="size-3.5" />
                         )}
                         {sortDirection === 'desc' && (
-                          <ArrowDown aria-hidden="true" className="size-3.5" />
+                          <ArrowUp aria-hidden="true" className="size-3.5" />
                         )}
                         {!sortDirection && (
                           <ChevronsUpDown
@@ -289,12 +329,12 @@ export function DataTable<TData extends RowData>({
       </Table>
 
       {onPaginationChange && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-muted-foreground shrink-0">
             Page {table.getPageCount() === 0 ? 0 : pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-1 items-center justify-center gap-1">
             <Button
               variant="outline"
               size="sm"
@@ -304,6 +344,18 @@ export function DataTable<TData extends RowData>({
               <ChevronLeft aria-hidden="true" />
               Previous
             </Button>
+            {getVisiblePageIndices(pagination.pageIndex, table.getPageCount()).map((pageIndex) => (
+              <Button
+                key={pageIndex}
+                variant={pageIndex === pagination.pageIndex ? 'default' : 'outline'}
+                size="sm"
+                className="w-8 px-0"
+                aria-current={pageIndex === pagination.pageIndex ? 'page' : undefined}
+                onClick={() => onPaginationChange({ ...pagination, pageIndex })}
+              >
+                {pageIndex + 1}
+              </Button>
+            ))}
             <Button
               variant="outline"
               size="sm"
@@ -313,6 +365,27 @@ export function DataTable<TData extends RowData>({
               Next
               <ChevronRight aria-hidden="true" />
             </Button>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="text-sm text-muted-foreground">Per page</span>
+            <Select
+              items={PAGE_SIZE_ITEMS}
+              value={String(pagination.pageSize)}
+              onValueChange={(value) =>
+                onPaginationChange({ pageIndex: 0, pageSize: Number(value) })
+              }
+            >
+              <SelectTrigger className="w-[4.5rem]" size="sm" aria-label="Rows per page">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}

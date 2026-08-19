@@ -6,7 +6,7 @@ import { EmptyState } from '@/shared/components/empty-state/EmptyState'
 import { useDeliveries } from '@/features/deliveries/hooks/useDeliveries'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { useActivity } from '@/shared/hooks/useActivity'
-import { DRIVER_STATUS_CONFIG } from '../driver-status-config'
+import { DRIVER_SHIFT_CONFIG, DRIVER_STATUS_CONFIG } from '../driver-status-config'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -40,12 +40,7 @@ export function DriverOverviewTab({ driver }: { driver: Driver }) {
         'Unassigned'
       ),
     ],
-    [
-      'Availability',
-      driver.availability.onShift
-        ? `On shift ${driver.availability.shiftStart}–${driver.availability.shiftEnd}`
-        : 'Off shift',
-    ],
+    ['Shift', DRIVER_SHIFT_CONFIG[driver.availability.shift].label],
     ['Deliveries today', driver.deliveriesToday],
     ['Completed deliveries', driver.completedDeliveries],
     ['Last active', formatDate(driver.lastActiveAt)],

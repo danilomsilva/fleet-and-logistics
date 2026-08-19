@@ -3,9 +3,7 @@ import { Link } from 'react-router'
 import type { Driver } from '@/mock-api/schemas/driver'
 import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { dataTableFeatures } from '@/shared/components/data-table/data-table-features'
-import { DRIVER_STATUS_CONFIG } from '../driver-status-config'
-
-const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
+import { DRIVER_SHIFT_CONFIG, DRIVER_STATUS_CONFIG } from '../driver-status-config'
 
 const helper = createColumnHelper<typeof dataTableFeatures, Driver>()
 
@@ -40,15 +38,12 @@ export function createDriverColumns(vehicleNameById: Map<string, string>) {
     helper.accessor('deliveriesToday', { header: 'Deliveries today' }),
     helper.accessor('completedDeliveries', { header: 'Completed deliveries' }),
     helper.accessor('availability', {
-      header: 'Availability',
-      cell: (info) => {
-        const { onShift, shiftStart, shiftEnd } = info.getValue()
-        return onShift ? `On shift ${shiftStart}–${shiftEnd}` : 'Off shift'
-      },
+      header: 'Shift',
+      cell: (info) => DRIVER_SHIFT_CONFIG[info.getValue().shift].label,
     }),
-    helper.accessor('lastActiveAt', {
-      header: 'Last active',
-      cell: (info) => dateFormatter.format(new Date(info.getValue())),
-    }),
+    // helper.accessor('lastActiveAt', {
+    //   header: 'Last active',
+    //   cell: (info) => dateFormatter.format(new Date(info.getValue())),
+    // }),
   ]
 }

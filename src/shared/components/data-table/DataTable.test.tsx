@@ -155,12 +155,65 @@ describe('DataTable pagination', () => {
 
     expect(onPaginationChange).toHaveBeenCalledWith({ pageIndex: 1, pageSize: 20 })
   })
+
+  it('renders up to 5 numbered page buttons, centered on the current page', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 5, pageSize: 10 }}
+        onPaginationChange={() => {}}
+        rowCount={200}
+      />,
+    )
+    // pageCount is 20; centered on page 6 (index 5) the window is pages 4-8.
+    for (const page of ['4', '5', '6', '7', '8']) {
+      expect(screen.getByRole('button', { name: page })).toBeInTheDocument()
+    }
+    expect(screen.queryByRole('button', { name: '3' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '9' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '6' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('calls onPaginationChange with the clicked page index', async () => {
+    const user = userEvent.setup()
+    const onPaginationChange = vi.fn()
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 0, pageSize: 10 }}
+        onPaginationChange={onPaginationChange}
+        rowCount={40}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: '3' }))
+
+    expect(onPaginationChange).toHaveBeenCalledWith({ pageIndex: 2, pageSize: 10 })
+  })
+
+  it('shows a per-page selector with the current page size', () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 0, pageSize: 25 }}
+        onPaginationChange={() => {}}
+        rowCount={60}
+      />,
+    )
+    expect(screen.getByRole('combobox', { name: /rows per page/i })).toHaveTextContent('25')
+  })
 })
 
 describe('DataTable column visibility', () => {
   it('hides a column when it is toggled off, and shows it again when toggled back on', async () => {
     const user = userEvent.setup()
-    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />)
+    render(<DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} showColumnToggle />)
 
     expect(screen.getByRole('columnheader', { name: 'Mileage' })).toBeInTheDocument()
 
@@ -181,7 +234,7 @@ describe('DataTable column visibility', () => {
   it('has no detectable accessibility violations with the columns menu open', async () => {
     const user = userEvent.setup()
     const { container } = render(
-      <DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} />,
+      <DataTable columns={columns} data={VEHICLES} getRowId={(v) => v.id} showColumnToggle />,
     )
 
     await user.click(screen.getByRole('button', { name: /columns/i }))

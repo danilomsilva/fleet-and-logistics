@@ -2,17 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { createDb } from './db'
 
 describe('createDb', () => {
-  it('bidirectionally wires driver <-> vehicle assignment for in-use vehicles', () => {
+  it('bidirectionally wires driver <-> vehicle assignment for every driver', () => {
     const db = createDb()
 
-    const assignedVehicles = db.vehicles.filter((v) => v.driverId !== null)
-    expect(assignedVehicles.length).toBeGreaterThan(0)
+    expect(db.drivers.every((d) => d.assignedVehicleId !== null)).toBe(true)
+    expect(db.vehicles.every((v) => v.driverId !== null)).toBe(true)
 
-    for (const vehicle of assignedVehicles) {
-      expect(vehicle.status).toBe('in_use')
-      const driver = db.drivers.find((d) => d.id === vehicle.driverId)
-      expect(driver).toBeDefined()
-      expect(driver?.assignedVehicleId).toBe(vehicle.id)
+    for (const driver of db.drivers) {
+      const vehicle = db.vehicles.find((v) => v.id === driver.assignedVehicleId)
+      expect(vehicle).toBeDefined()
+      expect(vehicle?.driverId).toBe(driver.id)
     }
   })
 
@@ -38,6 +37,6 @@ describe('createDb', () => {
   it('produces different data for different seeds', () => {
     const a = createDb(1)
     const b = createDb(2)
-    expect(a.vehicles[0].name).not.toBe(b.vehicles[0].name)
+    expect(a.vehicles[0].registration).not.toBe(b.vehicles[0].registration)
   })
 })

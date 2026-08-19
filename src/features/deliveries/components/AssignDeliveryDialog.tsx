@@ -45,6 +45,13 @@ export function AssignDeliveryDialog({
   })
   const assignMutation = useAssignDelivery()
 
+  const driverItems = Object.fromEntries(
+    (driversData?.data ?? []).map((driver) => [driver.id, driver.name]),
+  )
+  const vehicleItems = Object.fromEntries(
+    (vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name]),
+  )
+
   function handleConfirm() {
     assignMutation.mutate(
       { deliveryId, driverId, vehicleId },
@@ -73,7 +80,11 @@ export function AssignDeliveryDialog({
           {driversData && driversData.data.length === 0 ? (
             <p className="text-sm text-muted-foreground">No available drivers right now.</p>
           ) : (
-            <Select value={driverId} onValueChange={(v) => setDriverId(v ?? '')}>
+            <Select
+              items={driverItems}
+              value={driverId}
+              onValueChange={(v) => setDriverId(v ?? '')}
+            >
               <SelectTrigger className="w-full" aria-label="Driver">
                 <SelectValue placeholder="Select driver" />
               </SelectTrigger>
@@ -91,7 +102,11 @@ export function AssignDeliveryDialog({
               No available {requiredVehicleType} vehicles right now.
             </p>
           ) : (
-            <Select value={vehicleId} onValueChange={(v) => setVehicleId(v ?? '')}>
+            <Select
+              items={vehicleItems}
+              value={vehicleId}
+              onValueChange={(v) => setVehicleId(v ?? '')}
+            >
               <SelectTrigger className="w-full" aria-label="Vehicle">
                 <SelectValue placeholder="Select vehicle" />
               </SelectTrigger>

@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import { faker } from '@faker-js/faker'
 import { db } from '../db'
 import {
   applyExactFilters,
@@ -9,7 +10,7 @@ import {
   randomDelay,
 } from './query-utils'
 import type { Driver } from '../schemas/driver'
-import { driverInputSchema, driverStatusSchema } from '../schemas/driver'
+import { driverInputSchema, driverShiftSchema, driverStatusSchema } from '../schemas/driver'
 
 function nextDriverId(): string {
   const max = db.drivers.reduce((acc, d) => {
@@ -91,9 +92,7 @@ export const driverHandlers = [
       deliveriesToday: 0,
       completedDeliveries: 0,
       availability: {
-        onShift: input.status !== 'offline',
-        shiftStart: '09:00',
-        shiftEnd: '17:00',
+        shift: faker.helpers.arrayElement(driverShiftSchema.options),
       },
       lastActiveAt: new Date().toISOString(),
     }

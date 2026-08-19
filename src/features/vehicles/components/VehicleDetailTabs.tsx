@@ -7,6 +7,7 @@ import { useMaintenanceRecords } from '@/features/maintenance/hooks/useMaintenan
 import { useDeliveries } from '@/features/deliveries/hooks/useDeliveries'
 import { useActivity } from '@/shared/hooks/useActivity'
 import { useDrivers } from '@/features/drivers/hooks/useDrivers'
+import { formatKm } from '@/shared/lib/format'
 import { VEHICLE_MAINTENANCE_STATUS_CONFIG, VEHICLE_STATUS_CONFIG } from '../vehicle-status-config'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -41,7 +42,7 @@ export function VehicleOverviewTab({ vehicle }: { vehicle: Vehicle }) {
         'Unassigned'
       ),
     ],
-    ['Mileage', vehicle.mileage.toLocaleString()],
+    ['Mileage', formatKm(vehicle.mileage)],
   ]
 
   return (

@@ -28,3 +28,15 @@ export const maintenanceRecordSchema = z.object({
   notes: z.string(),
 })
 export type MaintenanceRecord = z.infer<typeof maintenanceRecordSchema>
+
+/** The user-editable subset of a maintenance record, used for both create and edit. */
+export const maintenanceInputSchema = z.object({
+  vehicleId: z.string().min(1, 'Vehicle is required'),
+  maintenanceType: maintenanceTypeSchema,
+  priority: maintenancePrioritySchema,
+  scheduledDate: z.string().min(1, 'Scheduled date is required'),
+  mileage: z.number().nonnegative(),
+  description: z.string().trim().min(1, 'Description is required'),
+  notes: z.string(),
+})
+export type MaintenanceInput = z.infer<typeof maintenanceInputSchema>

@@ -10,6 +10,7 @@ export interface AlertsQueryParams {
   status?: string
   type?: string
   priority?: string
+  category?: string
   q?: string
 }
 

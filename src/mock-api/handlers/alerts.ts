@@ -11,6 +11,14 @@ import {
 import type { Alert } from '../schemas/alert'
 import { alertStatusSchema } from '../schemas/alert'
 
+/** 'delivery' alerts relate to a delivery; 'fleet' covers vehicle/driver/maintenance. */
+function applyCategoryFilter(items: Alert[], url: URL): Alert[] {
+  const category = url.searchParams.get('category')
+  if (category === 'delivery') return items.filter((a) => a.relatedEntity.kind === 'delivery')
+  if (category === 'fleet') return items.filter((a) => a.relatedEntity.kind !== 'delivery')
+  return items
+}
+
 export const alertHandlers = [
   http.get('/api/alerts', async ({ request }) => {
     await randomDelay()
@@ -19,6 +27,7 @@ export const alertHandlers = [
     let items: Alert[] = [...db.alerts]
     items = applyTextSearch(items, url, ['message'])
     items = applyExactFilters(items, url, ['status', 'type', 'priority'])
+    items = applyCategoryFilter(items, url)
     items = applySort(items, url, ['timestamp', 'priority'])
 
     return HttpResponse.json(paginate(items, parsePageParams(url)))

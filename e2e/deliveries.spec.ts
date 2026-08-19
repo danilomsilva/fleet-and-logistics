@@ -7,22 +7,39 @@ test('Deliveries table renders and filters are reflected in the URL and persist 
   await expect(page.getByRole('columnheader', { name: 'Delivery ID' })).toBeVisible()
 
   await page.getByRole('combobox', { name: 'Filter by status' }).click()
-  await page.getByRole('option', { name: 'pending', exact: true }).click()
+  await page.getByRole('option', { name: 'Pending', exact: true }).click()
   await expect(page).toHaveURL(/status=pending/)
 
   await page.reload()
   await expect(page).toHaveURL(/status=pending/)
-  await expect(page.getByRole('combobox', { name: 'Filter by status' })).toContainText('pending')
+  await expect(page.getByRole('combobox', { name: 'Filter by status' })).toContainText('Pending')
 })
 
 test('assign dialog shows a clear message when no matching vehicles are available', async ({
   page,
 }) => {
-  // DEL-1000 requires a truck; the seeded dataset has none available.
-  await page.goto('/deliveries/DEL-1000')
-  await page.getByRole('button', { name: 'Assign' }).click()
+  await page.goto('/deliveries?status=pending')
+  await expect(page.getByRole('columnheader', { name: 'Delivery ID' })).toBeVisible()
 
-  await expect(page.getByText('No available truck vehicles right now.')).toBeVisible()
+  await page.evaluate(async () => {
+    const vehiclesRes = await fetch('/api/vehicles?pageSize=200')
+    const vehicles = (await vehiclesRes.json()).data
+    await Promise.all(
+      vehicles.map((v: { id: string }) =>
+        fetch(`/api/vehicles/${v.id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'broken' }),
+        }),
+      ),
+    )
+  })
+
+  const firstRow = page.locator('tbody tr').first()
+  await expect(firstRow.getByRole('link')).not.toHaveText('')
+  await firstRow.getByRole('link').click()
+
+  await page.getByRole('button', { name: 'Assign' }).click()
+  await expect(page.getByText('No available van vehicles right now.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Confirm assignment' })).toBeDisabled()
 })
 

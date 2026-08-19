@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { MaintenanceRecord, MaintenanceStatus } from '@/mock-api/schemas/maintenance'
 import { maintenanceKeys } from './query-keys'
+import { vehicleKeys } from '@/features/vehicles/hooks/query-keys'
 
 interface UpdateStatusInput {
   id: string
@@ -44,6 +45,7 @@ export function useUpdateMaintenanceStatus() {
     onSettled: (_data, _error, { id }) => {
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.all })
     },
   })
 }

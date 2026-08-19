@@ -15,7 +15,7 @@ interface AlertSources {
 }
 
 const MESSAGES: Record<AlertType, string> = {
-  vehicle_maintenance_due: 'Maintenance is due soon',
+  vehicle_service_due: 'Service is due soon',
   delivery_delayed: 'Delivery is running behind schedule',
   driver_unavailable: 'Driver is unavailable for assignment',
   vehicle_offline: 'Vehicle has gone offline',
@@ -24,7 +24,7 @@ const MESSAGES: Record<AlertType, string> = {
 
 function pickRelatedEntity(type: AlertType, sources: AlertSources): EntityRef {
   switch (type) {
-    case 'vehicle_maintenance_due':
+    case 'vehicle_service_due':
       return { kind: 'maintenance', id: faker.helpers.arrayElement(sources.maintenanceRecords).id }
     case 'delivery_delayed':
     case 'assignment_conflict':

@@ -7,8 +7,8 @@ test('Drivers table renders data and status filter narrows results', async ({ pa
   const rows = page.locator('tbody tr')
   await expect(rows.first().getByRole('link')).not.toHaveText('')
 
-  await page.getByRole('combobox').click()
-  await page.getByRole('option', { name: 'available', exact: true }).click()
+  await page.getByRole('combobox').first().click()
+  await page.getByRole('option', { name: 'Available', exact: true }).click()
   await expect(page).toHaveURL(/status=available/)
 })
 
@@ -24,8 +24,8 @@ test('selecting rows shows a bulk-action bar and marking drivers offline updates
   await rows.first().getByRole('checkbox', { name: 'Select row' }).click()
   await expect(page.getByText('1 selected')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Mark offline' }).click()
-  await expect(page.getByText(/marked offline/)).toBeVisible()
+  await page.getByRole('button', { name: 'Mark not available' }).click()
+  await expect(page.getByText(/marked not available/)).toBeVisible()
 })
 
 test('adding, editing, and deleting a driver works end to end', async ({ page }) => {
@@ -37,6 +37,8 @@ test('adding, editing, and deleting a driver works end to end', async ({ page })
   const addDialog = page.getByRole('dialog')
   await expect(addDialog.getByRole('heading', { name: 'Add driver' })).toBeVisible()
   await addDialog.getByLabel('Name').fill('E2E Test Driver')
+  await addDialog.getByRole('combobox', { name: 'Assigned vehicle' }).click()
+  await page.getByRole('option').first().click()
   await addDialog.getByRole('button', { name: 'Add driver' }).click()
   await expect(page.getByText(/added\./)).toBeVisible()
 
@@ -69,7 +71,7 @@ test('driver detail page shows tabs and switches between them', async ({ page })
   await page.locator('tbody tr').first().getByRole('link').click()
 
   await expect(page.getByRole('tab', { name: 'Overview' })).toBeVisible()
-  await expect(page.getByText('Availability')).toBeVisible()
+  await expect(page.getByText('Shift')).toBeVisible()
 
   await page.getByRole('tab', { name: "Today's deliveries" }).click()
   await expect(page.getByRole('tab', { name: "Today's deliveries", selected: true })).toBeVisible()

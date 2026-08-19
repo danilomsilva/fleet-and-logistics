@@ -5,14 +5,13 @@ import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { dataTableFeatures } from '@/shared/components/data-table/data-table-features'
 import { DELIVERY_PRIORITY_CONFIG, DELIVERY_STATUS_CONFIG } from '../delivery-status-config'
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
+const dateOnlyFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
+  year: 'numeric',
 })
-function formatDate(value: string | null) {
-  return value ? dateFormatter.format(new Date(value)) : '—'
+function formatDateOnly(value: string | null) {
+  return value ? dateOnlyFormatter.format(new Date(value)) : '—'
 }
 
 const helper = createColumnHelper<typeof dataTableFeatures, Delivery>()
@@ -69,10 +68,9 @@ export function createDeliveryColumns(
         return <StatusBadge label={config.label} tone={config.tone} icon={config.icon} />
       },
     }),
-    helper.accessor('eta', { header: 'ETA', cell: (info) => formatDate(info.getValue()) }),
     helper.accessor('scheduledTime', {
-      header: 'Scheduled time',
-      cell: (info) => formatDate(info.getValue()),
+      header: 'Scheduled delivery',
+      cell: (info) => formatDateOnly(info.getValue()),
     }),
   ]
 }

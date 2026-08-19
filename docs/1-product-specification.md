@@ -77,7 +77,7 @@ Show vehicles grouped by:
 - Available
 - In use
 - Maintenance
-- Offline
+- Broken
 
 ### Recent activity
 
@@ -372,7 +372,7 @@ Centralised operational alerts.
 
 Alert types:
 
-- Vehicle maintenance due
+- Vehicle service due
 - Delivery delayed
 - Driver unavailable
 - Vehicle offline

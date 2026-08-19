@@ -13,16 +13,16 @@ import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { DELIVERY_PRIORITY_CONFIG, DELIVERY_STATUS_CONFIG } from './delivery-status-config'
 import { AssignDeliveryDialog } from './components/AssignDeliveryDialog'
+import { DeliveryRouteMap } from './components/DeliveryRouteMap'
 import type { DeliveryStatus } from '@/mock-api/schemas/delivery'
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
+const dateOnlyFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
+  year: 'numeric',
 })
-function formatDate(value: string | null) {
-  return value ? dateFormatter.format(new Date(value)) : '—'
+function formatDateOnly(value: string | null) {
+  return value ? dateOnlyFormatter.format(new Date(value)) : '—'
 }
 
 const ACTIVE_STATUSES: DeliveryStatus[] = ['pending', 'assigned', 'in_transit', 'delayed']
@@ -97,8 +97,7 @@ export function DeliveryDetailPage() {
       'Status',
       <StatusBadge label={statusConfig.label} tone={statusConfig.tone} icon={statusConfig.icon} />,
     ],
-    ['ETA', formatDate(delivery.eta)],
-    ['Scheduled time', formatDate(delivery.scheduledTime)],
+    ['Scheduled delivery', formatDateOnly(delivery.scheduledTime)],
     ['Notes', delivery.notes || '—'],
   ]
 
@@ -154,6 +153,11 @@ export function DeliveryDetailPage() {
             <div className="text-sm font-medium">{value}</div>
           </div>
         ))}
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-lg font-medium">Route</h2>
+        <DeliveryRouteMap pickup={delivery.pickup} destination={delivery.destination} />
       </div>
 
       <div className="space-y-2">

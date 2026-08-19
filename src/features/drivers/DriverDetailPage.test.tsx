@@ -25,7 +25,7 @@ describe('DriverDetailPage', () => {
     renderDetail(target.id)
 
     expect(await screen.findByRole('heading', { name: target.name })).toBeInTheDocument()
-    expect(screen.getByText('Availability')).toBeInTheDocument()
+    expect(screen.getByText('Shift')).toBeInTheDocument()
   })
 
   it('has no detectable accessibility violations once loaded', async () => {

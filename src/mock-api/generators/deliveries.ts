@@ -3,8 +3,7 @@ import type { Delivery, DeliveryStatus } from '../schemas/delivery'
 import { deliveryPrioritySchema } from '../schemas/delivery'
 import type { Driver } from '../schemas/driver'
 import type { Vehicle } from '../schemas/vehicle'
-import { vehicleTypeSchema } from '../schemas/vehicle'
-import { irishGeoPoint } from './geo'
+import { irishTownGeoPoint } from './geo'
 
 const ASSIGNED_STATUSES: DeliveryStatus[] = ['assigned', 'in_transit', 'delivered', 'delayed']
 // "Currently happening" statuses — the assigned driver/vehicle should reflect
@@ -23,7 +22,7 @@ function pickVehicleFor(driver: Driver, vehicles: Vehicle[]): Vehicle {
     : undefined
   if (assigned) return assigned
 
-  const pool = vehicles.filter((v) => v.status !== 'maintenance' && v.status !== 'offline')
+  const pool = vehicles.filter((v) => v.status !== 'maintenance' && v.status !== 'broken')
   return faker.helpers.arrayElement(pool.length > 0 ? pool : vehicles)
 }
 
@@ -56,11 +55,11 @@ export function generateDeliveries(
     return {
       id,
       customer: faker.person.fullName(),
-      pickup: irishGeoPoint(),
-      destination: irishGeoPoint(),
+      pickup: irishTownGeoPoint(),
+      destination: irishTownGeoPoint(),
       driverId: driver?.id ?? null,
       vehicleId: vehicle?.id ?? null,
-      requiredVehicleType: faker.helpers.arrayElement(vehicleTypeSchema.options),
+      requiredVehicleType: 'van',
       priority: faker.helpers.arrayElement(deliveryPrioritySchema.options),
       status,
       eta: status === 'in_transit' ? faker.date.soon({ days: 1 }).toISOString() : null,

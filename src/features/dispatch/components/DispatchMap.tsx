@@ -21,7 +21,7 @@ const VEHICLE_STATUS_COLOR: Record<VehicleStatus, string> = {
   available: '#059669',
   in_use: '#2563eb',
   maintenance: '#d97706',
-  offline: '#6b7280',
+  broken: '#6b7280',
 }
 
 const DELIVERY_MARKER_COLOR = '#7c3aed'

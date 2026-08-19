@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { entityRefSchema } from './common'
 
 export const alertTypeSchema = z.enum([
-  'vehicle_maintenance_due',
+  'vehicle_service_due',
   'delivery_delayed',
   'driver_unavailable',
   'vehicle_offline',

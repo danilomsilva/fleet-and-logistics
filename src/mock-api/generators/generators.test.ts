@@ -7,7 +7,7 @@ import { generateMaintenanceRecords } from './maintenance'
 import { generateAlerts } from './alerts'
 import { generateActivityEvents } from './activity'
 import { vehicleStatusSchema } from '../schemas/vehicle'
-import { driverStatusSchema } from '../schemas/driver'
+import { driverShiftSchema, driverStatusSchema } from '../schemas/driver'
 
 beforeEach(() => {
   faker.seed(1)
@@ -36,14 +36,10 @@ describe('generateDrivers', () => {
     }
   })
 
-  it('sets availability.onShift to false only for offline drivers', () => {
+  it('always sets a valid shift, regardless of status', () => {
     const drivers = generateDrivers(50)
     for (const driver of drivers) {
-      if (driver.status === 'offline') {
-        expect(driver.availability.onShift).toBe(false)
-      } else {
-        expect(driver.availability.onShift).toBe(true)
-      }
+      expect(driverShiftSchema.options).toContain(driver.availability.shift)
     }
   })
 })
@@ -111,7 +107,7 @@ describe('generateAlerts', () => {
 
     expect(alerts).toHaveLength(20)
     const expectedKind = {
-      vehicle_maintenance_due: 'maintenance',
+      vehicle_service_due: 'maintenance',
       delivery_delayed: 'delivery',
       assignment_conflict: 'delivery',
       driver_unavailable: 'driver',

@@ -5,14 +5,24 @@ test('Alerts table renders and the status filter narrows results', async ({ page
   await expect(page.getByRole('columnheader', { name: 'Message' })).toBeVisible()
 
   await page.getByRole('combobox', { name: 'Filter by status' }).click()
-  await page.getByRole('option', { name: 'active', exact: true }).click()
+  await page.getByRole('option', { name: 'Active', exact: true }).click()
   await expect(page).toHaveURL(/status=active/)
 })
 
 test('acknowledging an active alert updates its status, and resolving it completes the flow', async ({
   page,
 }) => {
-  await page.goto('/alerts?status=active')
+  await page.goto('/alerts')
+  await expect(page.getByRole('columnheader', { name: 'Message' })).toBeVisible()
+
+  const category = await page.evaluate(async () => {
+    const res = await fetch('/api/alerts?status=active&pageSize=1')
+    const alert = (await res.json()).data[0]
+    return alert ? (alert.relatedEntity.kind === 'delivery' ? 'delivery' : 'fleet') : null
+  })
+  expect(category).not.toBeNull()
+
+  await page.goto(`/alerts?status=active&category=${category}`)
   await expect(page.getByRole('columnheader', { name: 'Message' })).toBeVisible()
 
   const row = page.locator('tbody tr').first()

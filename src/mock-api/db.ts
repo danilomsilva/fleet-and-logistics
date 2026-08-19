@@ -5,35 +5,35 @@ import { generateDeliveries } from './generators/deliveries'
 import { generateDrivers } from './generators/drivers'
 import { generateMaintenanceRecords } from './generators/maintenance'
 import { generateVehicles } from './generators/vehicles'
+import { computeVehicleMaintenanceStatus } from './maintenance-status'
 
 const DEFAULT_SEED = 20260817
 
 const COUNTS = {
-  vehicles: 24,
-  drivers: 18,
+  vehicles: 10,
+  drivers: 10,
   deliveries: 60,
-  maintenanceRecords: 16,
+  maintenanceRecords: 10,
   alerts: 20,
   activity: 50,
 } as const
 
-/** Assigns drivers to in-use vehicles, wiring both sides of the relationship. */
+/**
+ * Pairs every driver with a distinct vehicle 1:1, wiring both sides of the
+ * relationship — every driver must have an assigned vehicle, which as a side
+ * effect also covers in-use/maintenance vehicles needing a driver. Requires
+ * COUNTS.drivers === COUNTS.vehicles.
+ */
 function assignDriversToVehicles(
   vehicles: ReturnType<typeof generateVehicles>,
   drivers: ReturnType<typeof generateDrivers>,
 ) {
-  const assignablePool = drivers.filter((driver) => driver.status !== 'offline')
-  let poolIndex = 0
-
-  for (const vehicle of vehicles) {
-    if (vehicle.status !== 'in_use') continue
-    if (poolIndex >= assignablePool.length) break
-
-    const driver = assignablePool[poolIndex]
-    vehicle.driverId = driver.id
+  const shuffledVehicles = faker.helpers.shuffle([...vehicles])
+  drivers.forEach((driver, i) => {
+    const vehicle = shuffledVehicles[i]
     driver.assignedVehicleId = vehicle.id
-    poolIndex++
-  }
+    vehicle.driverId = driver.id
+  })
 }
 
 export function createDb(seed: number = DEFAULT_SEED) {
@@ -45,6 +45,9 @@ export function createDb(seed: number = DEFAULT_SEED) {
 
   const deliveries = generateDeliveries(COUNTS.deliveries, { vehicles, drivers })
   const maintenanceRecords = generateMaintenanceRecords(COUNTS.maintenanceRecords, { vehicles })
+  for (const vehicle of vehicles) {
+    vehicle.maintenanceStatus = computeVehicleMaintenanceStatus(vehicle)
+  }
   const alerts = generateAlerts(COUNTS.alerts, {
     vehicles,
     drivers,

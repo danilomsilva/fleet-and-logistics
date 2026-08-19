@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { geoPointSchema } from './common'
 
-export const vehicleStatusSchema = z.enum(['available', 'in_use', 'maintenance', 'offline'])
+export const vehicleStatusSchema = z.enum(['available', 'in_use', 'maintenance', 'broken'])
 export type VehicleStatus = z.infer<typeof vehicleStatusSchema>
 
 export const vehicleTypeSchema = z.enum(['van', 'truck', 'car', 'motorcycle'])
@@ -26,12 +26,20 @@ export const vehicleSchema = z.object({
 export type Vehicle = z.infer<typeof vehicleSchema>
 
 /** The user-editable subset of a vehicle, used for both create and edit. */
-export const vehicleInputSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
-  registration: z.string().trim().min(1, 'Registration is required'),
-  type: vehicleTypeSchema,
-  status: vehicleStatusSchema,
-  driverId: z.string().nullable(),
-  mileage: z.number().nonnegative(),
-})
+export const vehicleInputSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required'),
+    registration: z.string().trim().min(1, 'Registration is required'),
+    type: vehicleTypeSchema,
+    status: vehicleStatusSchema,
+    driverId: z.string().nullable(),
+    mileage: z.number().nonnegative(),
+  })
+  .refine(
+    (input) => !(input.status === 'in_use' || input.status === 'maintenance') || input.driverId,
+    {
+      message: 'A driver must be assigned when status is In use or Service',
+      path: ['driverId'],
+    },
+  )
 export type VehicleInput = z.infer<typeof vehicleInputSchema>

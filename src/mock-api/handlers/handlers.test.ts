@@ -120,6 +120,15 @@ describe('vehicles handlers', () => {
     const missing = await fetch(`${BASE}/api/vehicles/${vehicle.id}`, { method: 'DELETE' })
     expect(missing.status).toBe(404)
   })
+
+  it('deletes a vehicle and removes its maintenance records', async () => {
+    const vehicle = db.vehicles.find((v) => db.maintenanceRecords.some((m) => m.vehicleId === v.id))
+    if (!vehicle) return
+
+    const res = await fetch(`${BASE}/api/vehicles/${vehicle.id}`, { method: 'DELETE' })
+    expect(res.status).toBe(204)
+    expect(db.maintenanceRecords.some((m) => m.vehicleId === vehicle.id)).toBe(false)
+  })
 })
 
 describe('drivers handlers', () => {
@@ -140,7 +149,11 @@ describe('drivers handlers', () => {
     const countBefore = db.drivers.length
     const res = await fetch(`${BASE}/api/drivers`, {
       method: 'POST',
-      body: JSON.stringify({ name: 'Test Driver', status: 'available', assignedVehicleId: null }),
+      body: JSON.stringify({
+        name: 'Test Driver',
+        status: 'available',
+        assignedVehicleId: db.vehicles[0].id,
+      }),
     })
     expect(res.status).toBe(201)
     const created = await res.json()
@@ -155,10 +168,9 @@ describe('drivers handlers', () => {
   })
 
   it('updates a driver, relinking the assigned vehicle away from any other driver', async () => {
-    const driver = db.drivers.find((d) => d.assignedVehicleId === null)
-    const vehicle = db.vehicles.find((v) => v.driverId !== null)
-    if (!driver || !vehicle) return
-    const previousDriver = db.drivers.find((d) => d.id === vehicle.driverId)!
+    const previousDriver = db.drivers.find((d) => d.assignedVehicleId !== null)!
+    const driver = db.drivers.find((d) => d.id !== previousDriver.id)!
+    const vehicle = db.vehicles.find((v) => v.id === previousDriver.assignedVehicleId)!
 
     const res = await fetch(`${BASE}/api/drivers/${driver.id}`, {
       method: 'PATCH',
@@ -174,7 +186,7 @@ describe('drivers handlers', () => {
 
     const missing = await fetch(`${BASE}/api/drivers/does-not-exist`, {
       method: 'PATCH',
-      body: JSON.stringify({ name: 'x', status: 'available', assignedVehicleId: null }),
+      body: JSON.stringify({ name: 'x', status: 'available', assignedVehicleId: vehicle.id }),
     })
     expect(missing.status).toBe(404)
   })
@@ -237,7 +249,9 @@ describe('deliveries handlers', () => {
     const driver = db.drivers.find((d) => d.id === target.driverId)!
     const vehicle = db.vehicles.find((v) => v.id === target.vehicleId)!
     driver.status = 'driving'
+    driver.assignedVehicleId = vehicle.id
     vehicle.status = 'in_use'
+    vehicle.driverId = driver.id
 
     const res = await fetch(`${BASE}/api/deliveries/${target.id}/status`, {
       method: 'PATCH',
@@ -260,15 +274,36 @@ describe('maintenance handlers', () => {
     expect(body.data.some((m: { id: string }) => m.id === target.id)).toBe(true)
   })
 
-  it('updates maintenance status via the mutation stub', async () => {
-    const target = db.maintenanceRecords.find((m) => m.status !== 'completed')
+  it('updates maintenance status and syncs the vehicle', async () => {
+    const target = db.maintenanceRecords.find((m) => {
+      if (m.status === 'completed') return false
+      return !db.maintenanceRecords.some(
+        (other) =>
+          other.id !== m.id && other.vehicleId === m.vehicleId && other.status !== 'completed',
+      )
+    })
     if (!target) return
-    const res = await fetch(`${BASE}/api/maintenance/${target.id}/status`, {
+    const vehicle = db.vehicles.find((v) => v.id === target.vehicleId)!
+    vehicle.driverId = db.drivers[0].id
+    vehicle.nextServiceDate = new Date().toISOString()
+
+    const started = await fetch(`${BASE}/api/maintenance/${target.id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'in_progress' }),
+    })
+    expect(started.status).toBe(200)
+    expect(target.status).toBe('in_progress')
+    expect(vehicle.status).toBe('maintenance')
+    expect(vehicle.maintenanceStatus).toBe('overdue')
+
+    const completed = await fetch(`${BASE}/api/maintenance/${target.id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status: 'completed' }),
     })
-    expect(res.status).toBe(200)
+    expect(completed.status).toBe(200)
     expect(target.status).toBe('completed')
+    expect(vehicle.status).toBe('available')
+    expect(vehicle.maintenanceStatus).toBe('overdue')
   })
 })
 
@@ -315,9 +350,8 @@ describe('dispatch handlers', () => {
   it('assigns a driver and vehicle to a pending delivery, and links them to each other', async () => {
     const target = db.deliveries.find((d) => d.status === 'pending')
     if (!target) return
-    const driver = db.drivers.find((d) => d.assignedVehicleId === null)
-    const vehicle = db.vehicles.find((v) => v.driverId === null)
-    if (!driver || !vehicle) return
+    const driver = db.drivers[0]
+    const vehicle = db.vehicles.find((v) => v.id !== driver.assignedVehicleId)!
 
     const res = await fetch(`${BASE}/api/dispatch/assign`, {
       method: 'POST',
@@ -339,10 +373,10 @@ describe('dispatch handlers', () => {
 
   it('assigning a vehicle already linked to another driver steals it away from them', async () => {
     const target = db.deliveries.find((d) => d.status === 'pending')
-    const newDriver = db.drivers.find((d) => d.assignedVehicleId === null)
-    const contestedVehicle = db.vehicles.find((v) => v.driverId !== null)
-    if (!target || !newDriver || !contestedVehicle) return
-    const previousDriver = db.drivers.find((d) => d.id === contestedVehicle.driverId)!
+    if (!target) return
+    const previousDriver = db.drivers.find((d) => d.assignedVehicleId !== null)!
+    const newDriver = db.drivers.find((d) => d.id !== previousDriver.id)!
+    const contestedVehicle = db.vehicles.find((v) => v.id === previousDriver.assignedVehicleId)!
 
     const res = await fetch(`${BASE}/api/dispatch/assign`, {
       method: 'POST',

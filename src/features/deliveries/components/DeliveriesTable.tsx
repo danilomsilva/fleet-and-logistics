@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { XCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import type { PaginationState, SortingState } from '@tanstack/react-table'
+import type { PaginationState, RowSelectionState, SortingState } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -19,6 +19,24 @@ import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { createDeliveryColumns } from './columns'
 import { deliveryPrioritySchema, deliveryStatusSchema } from '@/mock-api/schemas/delivery'
+import { DELIVERY_PRIORITY_CONFIG, DELIVERY_STATUS_CONFIG } from '../delivery-status-config'
+
+const STATUS_ITEMS: Record<string, string> = {
+  all: 'All statuses',
+  ...Object.fromEntries(
+    deliveryStatusSchema.options.map((status) => [status, DELIVERY_STATUS_CONFIG[status].label]),
+  ),
+}
+
+const PRIORITY_ITEMS: Record<string, string> = {
+  all: 'All priorities',
+  ...Object.fromEntries(
+    deliveryPrioritySchema.options.map((priority) => [
+      priority,
+      DELIVERY_PRIORITY_CONFIG[priority].label,
+    ]),
+  ),
+}
 
 const filtersSchema = z.object({
   status: z.string().optional().default(''),
@@ -33,7 +51,8 @@ const filtersSchema = z.object({
 export function DeliveriesTable() {
   const { filters, setFilters } = useUrlFilters(filtersSchema)
   const [sorting, setSorting] = useState<SortingState>([])
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined
 
@@ -65,6 +84,15 @@ export function DeliveriesTable() {
     return map
   }, [vehiclesData])
 
+  const driverItems: Record<string, string> = {
+    all: 'All drivers',
+    ...Object.fromEntries((driversData?.data ?? []).map((driver) => [driver.id, driver.name])),
+  }
+  const vehicleItems: Record<string, string> = {
+    all: 'All vehicles',
+    ...Object.fromEntries((vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name])),
+  }
+
   const columns = useMemo(
     () => createDeliveryColumns(driverNameById, vehicleNameById),
     [driverNameById, vehicleNameById],
@@ -81,6 +109,7 @@ export function DeliveriesTable() {
           selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'cancelled' })),
         )
         toast.success(`${selectedIds.length} delivery(ies) cancelled.`)
+        setRowSelection({})
       },
     },
   ]
@@ -108,6 +137,7 @@ export function DeliveriesTable() {
           className="w-40"
         />
         <Select
+          items={STATUS_ITEMS}
           value={filters.status || 'all'}
           onValueChange={(value) => setFilters({ status: !value || value === 'all' ? '' : value })}
         >
@@ -115,15 +145,15 @@ export function DeliveriesTable() {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {deliveryStatusSchema.options.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status.replace('_', ' ')}
+            {Object.entries(STATUS_ITEMS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select
+          items={PRIORITY_ITEMS}
           value={filters.priority || 'all'}
           onValueChange={(value) =>
             setFilters({ priority: !value || value === 'all' ? '' : value })
@@ -133,15 +163,15 @@ export function DeliveriesTable() {
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All priorities</SelectItem>
-            {deliveryPrioritySchema.options.map((priority) => (
-              <SelectItem key={priority} value={priority}>
-                {priority}
+            {Object.entries(PRIORITY_ITEMS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select
+          items={driverItems}
           value={filters.driverId || 'all'}
           onValueChange={(value) =>
             setFilters({ driverId: !value || value === 'all' ? '' : value })
@@ -151,15 +181,15 @@ export function DeliveriesTable() {
             <SelectValue placeholder="Driver" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All drivers</SelectItem>
-            {driversData?.data.map((driver) => (
-              <SelectItem key={driver.id} value={driver.id}>
-                {driver.name}
+            {Object.entries(driverItems).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select
+          items={vehicleItems}
           value={filters.vehicleId || 'all'}
           onValueChange={(value) =>
             setFilters({ vehicleId: !value || value === 'all' ? '' : value })
@@ -169,10 +199,9 @@ export function DeliveriesTable() {
             <SelectValue placeholder="Vehicle" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All vehicles</SelectItem>
-            {vehiclesData?.data.map((vehicle) => (
-              <SelectItem key={vehicle.id} value={vehicle.id}>
-                {vehicle.name}
+            {Object.entries(vehicleItems).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -189,6 +218,8 @@ export function DeliveriesTable() {
         onPaginationChange={setPagination}
         rowCount={data?.total}
         enableRowSelection
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
         bulkActions={bulkActions}
         isLoading={isLoading}
         isError={isError}

@@ -23,8 +23,7 @@ import { useCreateDriver } from '../hooks/useCreateDriver'
 import { useUpdateDriver } from '../hooks/useUpdateDriver'
 import { driverInputSchema, driverStatusSchema } from '@/mock-api/schemas/driver'
 import type { Driver } from '@/mock-api/schemas/driver'
-
-const UNASSIGNED = 'unassigned'
+import { DRIVER_STATUS_CONFIG } from '../driver-status-config'
 
 export interface DriverFormDialogProps {
   /** Called with `false` to close. The caller should stop rendering this
@@ -44,15 +43,13 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
 
   const [name, setName] = useState(driver?.name ?? '')
   const [status, setStatus] = useState<string>(driver?.status ?? 'available')
-  const [assignedVehicleId, setAssignedVehicleId] = useState(
-    driver?.assignedVehicleId ?? UNASSIGNED,
-  )
+  const [assignedVehicleId, setAssignedVehicleId] = useState(driver?.assignedVehicleId ?? '')
 
   function handleSubmit() {
     const parsed = driverInputSchema.safeParse({
       name,
       status,
-      assignedVehicleId: assignedVehicleId === UNASSIGNED ? null : assignedVehicleId,
+      assignedVehicleId: assignedVehicleId || null,
     })
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? 'Please check the form.')
@@ -99,7 +96,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
               <SelectContent>
                 {driverStatusSchema.options.map((option) => (
                   <SelectItem key={option} value={option}>
-                    {option.replace('_', ' ')}
+                    {DRIVER_STATUS_CONFIG[option].label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -109,10 +106,9 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
             <span className="text-sm font-medium">Assigned vehicle</span>
             <Select value={assignedVehicleId} onValueChange={(v) => v && setAssignedVehicleId(v)}>
               <SelectTrigger className="w-full" aria-label="Assigned vehicle">
-                <SelectValue />
+                <SelectValue placeholder="Select a vehicle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
                 {vehiclesData?.data.map((vehicle) => (
                   <SelectItem key={vehicle.id} value={vehicle.id}>
                     {vehicle.name}
@@ -125,7 +121,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
-          <Button disabled={isPending || !name} onClick={handleSubmit}>
+          <Button disabled={isPending || !name || !assignedVehicleId} onClick={handleSubmit}>
             {isEdit ? 'Save changes' : 'Add driver'}
           </Button>
         </DialogFooter>
