@@ -5,6 +5,7 @@ import {
   vehicleStatusSchema,
   vehicleTypeSchema,
 } from '../schemas/vehicle'
+import { irishGeoPoint } from './geo'
 
 export function generateVehicles(count: number): Vehicle[] {
   return Array.from({ length: count }, (_, i) => {
@@ -18,11 +19,7 @@ export function generateVehicles(count: number): Vehicle[] {
       type: faker.helpers.arrayElement(vehicleTypeSchema.options),
       status: faker.helpers.arrayElement(vehicleStatusSchema.options),
       driverId: null,
-      location: {
-        lat: faker.location.latitude(),
-        lng: faker.location.longitude(),
-        label: faker.location.streetAddress(),
-      },
+      location: irishGeoPoint(),
       mileage: faker.number.int({ min: 1_000, max: 150_000 }),
       nextServiceDate: hasUpcomingService ? faker.date.soon({ days: 60 }).toISOString() : null,
       maintenanceStatus: faker.helpers.arrayElement(vehicleMaintenanceStatusSchema.options),

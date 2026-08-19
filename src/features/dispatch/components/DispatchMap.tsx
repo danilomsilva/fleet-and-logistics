@@ -61,8 +61,11 @@ export function DispatchMap({
     const map = new MapLibreMap({
       container: containerRef.current,
       style: 'https://demotiles.maplibre.org/style.json',
-      center: [0, 20],
-      zoom: 1.5,
+      // Centered on Ireland (all vehicle/delivery locations are generated
+      // there); fitBounds() below re-frames to the actual markers once data
+      // loads, so this just avoids a visible jump from a global default.
+      center: [-8, 53.4],
+      zoom: 6,
     })
     map.addControl(new NavigationControl(), 'top-right')
     mapRef.current = map

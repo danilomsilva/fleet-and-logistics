@@ -4,6 +4,7 @@ import { deliveryPrioritySchema } from '../schemas/delivery'
 import type { Driver } from '../schemas/driver'
 import type { Vehicle } from '../schemas/vehicle'
 import { vehicleTypeSchema } from '../schemas/vehicle'
+import { irishGeoPoint } from './geo'
 
 const ASSIGNED_STATUSES: DeliveryStatus[] = ['assigned', 'in_transit', 'delivered', 'delayed']
 // "Currently happening" statuses — the assigned driver/vehicle should reflect
@@ -55,16 +56,8 @@ export function generateDeliveries(
     return {
       id,
       customer: faker.person.fullName(),
-      pickup: {
-        lat: faker.location.latitude(),
-        lng: faker.location.longitude(),
-        label: faker.location.streetAddress(),
-      },
-      destination: {
-        lat: faker.location.latitude(),
-        lng: faker.location.longitude(),
-        label: faker.location.streetAddress(),
-      },
+      pickup: irishGeoPoint(),
+      destination: irishGeoPoint(),
       driverId: driver?.id ?? null,
       vehicleId: vehicle?.id ?? null,
       requiredVehicleType: faker.helpers.arrayElement(vehicleTypeSchema.options),
