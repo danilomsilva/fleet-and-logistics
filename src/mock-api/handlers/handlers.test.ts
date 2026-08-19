@@ -135,6 +135,63 @@ describe('drivers handlers', () => {
     const body = await res.json()
     expect(body.data.some((d: { id: string }) => d.id === target.id)).toBe(true)
   })
+
+  it('creates a driver and rejects an invalid payload', async () => {
+    const countBefore = db.drivers.length
+    const res = await fetch(`${BASE}/api/drivers`, {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test Driver', status: 'available', assignedVehicleId: null }),
+    })
+    expect(res.status).toBe(201)
+    const created = await res.json()
+    expect(created.name).toBe('Test Driver')
+    expect(db.drivers.length).toBe(countBefore + 1)
+
+    const invalid = await fetch(`${BASE}/api/drivers`, {
+      method: 'POST',
+      body: JSON.stringify({ name: '' }),
+    })
+    expect(invalid.status).toBe(400)
+  })
+
+  it('updates a driver, relinking the assigned vehicle away from any other driver', async () => {
+    const driver = db.drivers.find((d) => d.assignedVehicleId === null)
+    const vehicle = db.vehicles.find((v) => v.driverId !== null)
+    if (!driver || !vehicle) return
+    const previousDriver = db.drivers.find((d) => d.id === vehicle.driverId)!
+
+    const res = await fetch(`${BASE}/api/drivers/${driver.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: driver.name,
+        status: driver.status,
+        assignedVehicleId: vehicle.id,
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect(vehicle.driverId).toBe(driver.id)
+    expect(previousDriver.assignedVehicleId).toBeNull()
+
+    const missing = await fetch(`${BASE}/api/drivers/does-not-exist`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'x', status: 'available', assignedVehicleId: null }),
+    })
+    expect(missing.status).toBe(404)
+  })
+
+  it('deletes a driver and unlinks their vehicle', async () => {
+    const driver = db.drivers.find((d) => d.assignedVehicleId !== null)
+    if (!driver) return
+    const vehicle = db.vehicles.find((v) => v.id === driver.assignedVehicleId)!
+
+    const res = await fetch(`${BASE}/api/drivers/${driver.id}`, { method: 'DELETE' })
+    expect(res.status).toBe(204)
+    expect(db.drivers.find((d) => d.id === driver.id)).toBeUndefined()
+    expect(vehicle.driverId).toBeNull()
+
+    const missing = await fetch(`${BASE}/api/drivers/${driver.id}`, { method: 'DELETE' })
+    expect(missing.status).toBe(404)
+  })
 })
 
 describe('deliveries handlers', () => {

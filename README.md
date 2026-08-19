@@ -7,8 +7,8 @@
 [![CI](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/ci.yml/badge.svg)](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/ci.yml)
 [![Deploy to GitHub Pages](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/deploy.yml/badge.svg)](https://github.com/danilomsilva/fleet-and-logistics/actions/workflows/deploy.yml)
 ![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-174%20unit%20%2B%2032%20e2e-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-76%25%20statements-brightgreen)
+![Tests](https://img.shields.io/badge/tests-180%20unit%20%2B%2034%20e2e-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-73%25%20statements-brightgreen)
 
 <p>
   <img src="docs/screenshots/dashboard.png" alt="Dashboard screen with KPI cards, delivery chart, fleet status, and recent activity" width="49%" />
@@ -22,7 +22,7 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 ## Engineering highlights
 
 - **TypeScript strict mode, zero errors** across the app, the mock API layer, and the Playwright test suite (three separate `tsconfig`s, all checked in CI).
-- **174 Vitest unit/component tests + 32 Playwright e2e tests**, ~76% statement coverage on application code (`npm run test:coverage`). Every major page and dialog is also scanned with `axe-core` for accessibility violations as part of the unit suite.
+- **180 Vitest unit/component tests + 34 Playwright e2e tests**, ~73% statement coverage on application code (`npm run test:coverage`). Every major page and dialog is also scanned with `axe-core` for accessibility violations as part of the unit suite.
 - **CI on every push and PR** — lint, typecheck (including e2e specs), unit tests, production build, and the full e2e suite, via [GitHub Actions](.github/workflows/ci.yml).
 - **Route-level code splitting**: the initial bundle is ~326 KB gzipped; MapLibre GL (~250 KB gzipped) and Recharts load only when their own routes are visited.
 - **Accessibility built in, not retrofitted**: every status is communicated by icon + text (never color alone), all interactive controls have accessible names, focus-visible rings and a skip link are present, and the data table's sort/pagination/selection controls are fully keyboard-operable.
@@ -34,7 +34,7 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 | Screen | What it does |
 |---|---|
 | **Dashboard** | KPI cards, a delivery-status chart with a Today/7d/30d toggle, fleet-status breakdown, top alerts, and a recent-activity feed — all aggregated from the same endpoints the other screens use, not separate mock numbers. |
-| **Vehicles / Drivers** | Sortable, filterable, searchable tables with column visibility and row selection + bulk status actions; detail pages with tabbed history (maintenance, deliveries, activity). Vehicles additionally support full add/edit/delete, with driver-assignment relinking handled server-side so the fleet roster and driver records never go out of sync. |
+| **Vehicles / Drivers** | Sortable, filterable, searchable tables with column visibility, row selection, and bulk status/delete actions; detail pages with tabbed history (maintenance, deliveries, activity). Both support full add/edit/delete, with driver-vehicle assignment relinked server-side on every change so the fleet roster and driver records never go out of sync — including reassigning a vehicle already claimed by another driver. |
 | **Deliveries** | The most complex table: a full filter set reflected in the URL (bookmarkable/shareable views), a detail page with state-dependent actions (assign → start → deliver / delay), and an assignment dialog that clearly explains *why* no driver/vehicle is available rather than showing an empty dropdown. |
 | **Dispatch** | A MapLibre GL map of fleet vehicles and unassigned delivery pickups (color/shape-coded by status), an unassigned-deliveries panel, and a Zustand-backed assignment wizard (driver → vehicle → review → confirm) — conflict prevention happens at the data layer: each step only offers entities the API reports as actually available. |
 | **Maintenance** | Scheduling and status transitions (due → in progress → completed) with optimistic updates. |
@@ -63,9 +63,9 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 ## Testing & quality
 
 ```
-npm run test           # 174 unit/component tests (Vitest + RTL), incl. axe accessibility checks
+npm run test           # 180 unit/component tests (Vitest + RTL), incl. axe accessibility checks
 npm run test:coverage  # same, with a coverage report
-npm run test:e2e       # 32 Playwright e2e tests covering every screen's critical flows
+npm run test:e2e       # 34 Playwright e2e tests covering every screen's critical flows
 npm run lint           # ESLint + a full TypeScript check of the e2e suite
 npx tsc -b             # strict-mode type check of the app + mock API layer
 ```

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
+import { CircleCheck, PowerOff, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,8 +12,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
-import { DataTable } from '@/shared/components/data-table/DataTable'
+import { DataTable, type BulkAction } from '@/shared/components/data-table/DataTable'
+import { ConfirmDialog } from '@/shared/components/confirm-dialog/ConfirmDialog'
 import { useDrivers } from '../hooks/useDrivers'
+import { useUpdateDriverStatus } from '../hooks/useUpdateDriverStatus'
+import { useDeleteDriver } from '../hooks/useDeleteDriver'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { createDriverColumns } from './columns'
 import { driverStatusSchema } from '@/mock-api/schemas/driver'
@@ -44,6 +49,46 @@ export function DriversTable() {
   }, [vehiclesData])
 
   const columns = useMemo(() => createDriverColumns(vehicleNameById), [vehicleNameById])
+
+  const updateStatus = useUpdateDriverStatus()
+  const deleteDriver = useDeleteDriver()
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
+
+  const bulkActions: BulkAction[] = [
+    {
+      label: 'Mark offline',
+      icon: PowerOff,
+      onClick: async (selectedIds) => {
+        await Promise.all(
+          selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'offline' })),
+        )
+        toast.success(`${selectedIds.length} driver(s) marked offline.`)
+      },
+    },
+    {
+      label: 'Mark available',
+      icon: CircleCheck,
+      onClick: async (selectedIds) => {
+        await Promise.all(
+          selectedIds.map((id) => updateStatus.mutateAsync({ id, status: 'available' })),
+        )
+        toast.success(`${selectedIds.length} driver(s) marked available.`)
+      },
+    },
+    {
+      label: 'Delete selected',
+      icon: Trash2,
+      variant: 'destructive',
+      onClick: (selectedIds) => setPendingDeleteIds(selectedIds),
+    },
+  ]
+
+  async function handleConfirmDelete() {
+    if (!pendingDeleteIds) return
+    await Promise.all(pendingDeleteIds.map((id) => deleteDriver.mutateAsync(id)))
+    toast.success(`${pendingDeleteIds.length} driver(s) deleted.`)
+    setPendingDeleteIds(null)
+  }
 
   return (
     <div className="space-y-4">
@@ -81,11 +126,24 @@ export function DriversTable() {
         pagination={pagination}
         onPaginationChange={setPagination}
         rowCount={data?.total}
+        enableRowSelection
+        bulkActions={bulkActions}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => refetch()}
         emptyTitle="No drivers found"
         emptyDescription="Try adjusting your search or filters."
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteIds}
+        onOpenChange={(open) => !open && setPendingDeleteIds(null)}
+        title={`Delete ${pendingDeleteIds?.length ?? 0} driver(s)?`}
+        description="This removes them from the roster. This can't be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        isLoading={deleteDriver.isPending}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )

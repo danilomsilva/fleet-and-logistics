@@ -21,3 +21,11 @@ export const driverSchema = z.object({
   lastActiveAt: z.string().datetime(),
 })
 export type Driver = z.infer<typeof driverSchema>
+
+/** The user-editable subset of a driver, used for both create and edit. */
+export const driverInputSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  status: driverStatusSchema,
+  assignedVehicleId: z.string().nullable(),
+})
+export type DriverInput = z.infer<typeof driverInputSchema>
