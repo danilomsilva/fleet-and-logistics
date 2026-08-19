@@ -24,3 +24,14 @@ export const vehicleSchema = z.object({
   lastUpdatedAt: z.string().datetime(),
 })
 export type Vehicle = z.infer<typeof vehicleSchema>
+
+/** The user-editable subset of a vehicle, used for both create and edit. */
+export const vehicleInputSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  registration: z.string().trim().min(1, 'Registration is required'),
+  type: vehicleTypeSchema,
+  status: vehicleStatusSchema,
+  driverId: z.string().nullable(),
+  mileage: z.number().nonnegative(),
+})
+export type VehicleInput = z.infer<typeof vehicleInputSchema>

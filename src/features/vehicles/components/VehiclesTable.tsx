@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
-import { CircleCheck, PowerOff } from 'lucide-react'
+import { CircleCheck, PowerOff, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
@@ -13,8 +13,10 @@ import {
 } from '@/components/ui/select'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
 import { DataTable, type BulkAction } from '@/shared/components/data-table/DataTable'
+import { ConfirmDialog } from '@/shared/components/confirm-dialog/ConfirmDialog'
 import { useVehicles } from '../hooks/useVehicles'
 import { useUpdateVehicleStatus } from '../hooks/useUpdateVehicleStatus'
+import { useDeleteVehicle } from '../hooks/useDeleteVehicle'
 import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { createVehicleColumns } from './columns'
 import { vehicleStatusSchema, vehicleTypeSchema } from '@/mock-api/schemas/vehicle'
@@ -51,6 +53,9 @@ export function VehiclesTable() {
   const columns = useMemo(() => createVehicleColumns(driverNameById), [driverNameById])
 
   const updateStatus = useUpdateVehicleStatus()
+  const deleteVehicle = useDeleteVehicle()
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null)
+
   const bulkActions: BulkAction[] = [
     {
       label: 'Mark offline',
@@ -72,7 +77,20 @@ export function VehiclesTable() {
         toast.success(`${selectedIds.length} vehicle(s) marked available.`)
       },
     },
+    {
+      label: 'Delete selected',
+      icon: Trash2,
+      variant: 'destructive',
+      onClick: (selectedIds) => setPendingDeleteIds(selectedIds),
+    },
   ]
+
+  async function handleConfirmDelete() {
+    if (!pendingDeleteIds) return
+    await Promise.all(pendingDeleteIds.map((id) => deleteVehicle.mutateAsync(id)))
+    toast.success(`${pendingDeleteIds.length} vehicle(s) deleted.`)
+    setPendingDeleteIds(null)
+  }
 
   return (
     <div className="space-y-4">
@@ -133,6 +151,17 @@ export function VehiclesTable() {
         onRetry={() => refetch()}
         emptyTitle="No vehicles found"
         emptyDescription="Try adjusting your search or filters."
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteIds}
+        onOpenChange={(open) => !open && setPendingDeleteIds(null)}
+        title={`Delete ${pendingDeleteIds?.length ?? 0} vehicle(s)?`}
+        description="This removes them from the fleet. This can't be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        isLoading={deleteVehicle.isPending}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )

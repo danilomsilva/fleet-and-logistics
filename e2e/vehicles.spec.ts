@@ -47,6 +47,43 @@ test('selecting rows shows a bulk-action bar and marking vehicles offline update
   await expect(page.getByText(/marked offline/)).toBeVisible()
 })
 
+test('adding, editing, and deleting a vehicle works end to end', async ({ page }) => {
+  await page.goto('/vehicles')
+  await expect(page.getByRole('columnheader', { name: 'Vehicle' })).toBeVisible()
+
+  // Add
+  await page.getByRole('button', { name: 'Add vehicle' }).click()
+  const addDialog = page.getByRole('dialog')
+  await expect(addDialog.getByRole('heading', { name: 'Add vehicle' })).toBeVisible()
+  await addDialog.getByLabel('Name').fill('E2E Test Van')
+  await addDialog.getByLabel('Registration').fill('26-E2E-1')
+  await addDialog.getByRole('button', { name: 'Add vehicle' }).click()
+  await expect(page.getByText('added to the fleet')).toBeVisible()
+
+  await page.getByPlaceholder('Search vehicles…').fill('E2E Test Van')
+  const row = page.locator('tbody tr', { hasText: 'E2E Test Van' })
+  await expect(row).toBeVisible()
+
+  // Edit
+  await row.getByRole('link').click()
+  await expect(page.getByRole('heading', { name: 'E2E Test Van' })).toBeVisible()
+  await page.getByRole('button', { name: 'Edit' }).click()
+  const editDialog = page.getByRole('dialog')
+  await expect(editDialog.getByRole('heading', { name: 'Edit E2E Test Van' })).toBeVisible()
+  await editDialog.getByLabel('Name').fill('E2E Test Van (Edited)')
+  await editDialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText('updated')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'E2E Test Van (Edited)' })).toBeVisible()
+
+  // Delete
+  await page.getByRole('button', { name: 'Delete' }).click()
+  const confirmDialog = page.getByRole('alertdialog')
+  await expect(confirmDialog).toBeVisible()
+  await confirmDialog.getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByText('removed from the fleet')).toBeVisible()
+  await expect(page).toHaveURL('/vehicles')
+})
+
 test('vehicle detail page shows tabs and switches between them', async ({ page }) => {
   await page.goto('/vehicles')
   await page.locator('tbody tr').first().getByRole('link').click()
