@@ -23,7 +23,9 @@ test('the MapLibre worker loads and actually fetches basemap tiles (not just the
 
   await page.goto('/dispatch')
   await expect(page.getByRole('img', { name: /Map of fleet vehicles/ })).toBeVisible()
-  await expect.poll(() => tileRequests.length, { timeout: 10000 }).toBeGreaterThan(0)
+  // Real network calls to the public demo tile server, so give this more
+  // headroom than a local-only assertion needs (CI runners can be slower).
+  await expect.poll(() => tileRequests.length, { timeout: 20000 }).toBeGreaterThan(0)
 
   const workers = page.workers()
   expect(workers.some((w) => w.url().includes('maplibre-gl-worker'))).toBe(true)

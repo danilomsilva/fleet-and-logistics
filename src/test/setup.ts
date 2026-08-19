@@ -1,7 +1,14 @@
 import '@testing-library/jest-dom/vitest'
 import { afterAll, afterEach, beforeAll } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { server } from '@/mock-api/server'
+
+// RTL's default asyncUtilTimeout (1000ms) for findBy*/waitFor is independent
+// of Vitest's own testTimeout, and is tight enough that MSW's simulated
+// latency (150-600ms) plus React re-renders can occasionally exceed it under
+// full-suite parallel load — this was the actual cause of a handful of
+// intermittent CI-only failures, not genuine flakiness in the app.
+configure({ asyncUtilTimeout: 5000 })
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => {

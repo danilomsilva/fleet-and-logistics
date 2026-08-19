@@ -20,7 +20,7 @@
 | Mock API | MSW (Mock Service Worker) | Intercepts real `fetch` calls at the network level so the app genuinely "talks to an API" (real request/response cycle, not just imported JS objects) — satisfies spec §1/§13 intent directly |
 | Client/UI state | Zustand (small, scoped) | Only for sidebar collapse state and the Dispatch assignment wizard step — everything else stays local or in the URL |
 | Tables | TanStack Table (headless) + shadcn `<Table>` | One reusable `DataTable` built once, reused for Vehicles/Drivers/Deliveries/Maintenance |
-| Forms | React Hook Form + Zod | Assignment review, maintenance scheduling, alert notes |
+| Forms | Zod (validation only) | Every "form" that shipped (assignment wizard, status transitions) turned out to be selection from existing data, not free-text input, so React Hook Form was never actually needed and was removed post-Milestone-12 as unused weight. Zod still validates mock API payloads and URL filter params. |
 | Charts | Recharts | Delivery-by-status chart on Dashboard |
 | Map | MapLibre GL JS (raw, thin React wrapper) | Vehicles/drivers/delivery markers, no billing/API-key setup |
 | Toasts | shadcn `sonner` integration | Mutation feedback per spec §10 |
