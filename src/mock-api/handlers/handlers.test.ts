@@ -230,6 +230,25 @@ describe('deliveries handlers', () => {
     })
     expect(res.status).toBe(400)
   })
+
+  it('frees the driver and vehicle back to available once a delivery is delivered', async () => {
+    const target = db.deliveries.find((d) => d.status === 'in_transit' && d.driverId && d.vehicleId)
+    if (!target) return
+    const driver = db.drivers.find((d) => d.id === target.driverId)!
+    const vehicle = db.vehicles.find((v) => v.id === target.vehicleId)!
+    driver.status = 'driving'
+    vehicle.status = 'in_use'
+
+    const res = await fetch(`${BASE}/api/deliveries/${target.id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'delivered' }),
+    })
+    expect(res.status).toBe(200)
+    expect(driver.status).toBe('available')
+    expect(vehicle.status).toBe('available')
+    // The pairing itself is untouched - still that driver's regular vehicle.
+    expect(driver.assignedVehicleId).toBe(vehicle.id)
+  })
 })
 
 describe('maintenance handlers', () => {
@@ -293,11 +312,12 @@ describe('activity handlers', () => {
 })
 
 describe('dispatch handlers', () => {
-  it('assigns a driver and vehicle to a pending delivery', async () => {
+  it('assigns a driver and vehicle to a pending delivery, and links them to each other', async () => {
     const target = db.deliveries.find((d) => d.status === 'pending')
     if (!target) return
-    const driver = db.drivers[0]
-    const vehicle = db.vehicles[0]
+    const driver = db.drivers.find((d) => d.assignedVehicleId === null)
+    const vehicle = db.vehicles.find((v) => v.driverId === null)
+    if (!driver || !vehicle) return
 
     const res = await fetch(`${BASE}/api/dispatch/assign`, {
       method: 'POST',
@@ -308,6 +328,33 @@ describe('dispatch handlers', () => {
     expect(body.driverId).toBe(driver.id)
     expect(body.vehicleId).toBe(vehicle.id)
     expect(body.status).toBe('assigned')
+
+    // The assignment must also show up on the driver's and vehicle's own
+    // records, not just the delivery — this was the actual bug.
+    expect(driver.assignedVehicleId).toBe(vehicle.id)
+    expect(vehicle.driverId).toBe(driver.id)
+    expect(driver.status).toBe('driving')
+    expect(vehicle.status).toBe('in_use')
+  })
+
+  it('assigning a vehicle already linked to another driver steals it away from them', async () => {
+    const target = db.deliveries.find((d) => d.status === 'pending')
+    const newDriver = db.drivers.find((d) => d.assignedVehicleId === null)
+    const contestedVehicle = db.vehicles.find((v) => v.driverId !== null)
+    if (!target || !newDriver || !contestedVehicle) return
+    const previousDriver = db.drivers.find((d) => d.id === contestedVehicle.driverId)!
+
+    const res = await fetch(`${BASE}/api/dispatch/assign`, {
+      method: 'POST',
+      body: JSON.stringify({
+        deliveryId: target.id,
+        driverId: newDriver.id,
+        vehicleId: contestedVehicle.id,
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect(contestedVehicle.driverId).toBe(newDriver.id)
+    expect(previousDriver.assignedVehicleId).toBeNull()
   })
 
   it('404s for an unknown delivery', async () => {

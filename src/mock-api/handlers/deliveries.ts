@@ -47,7 +47,6 @@ export const deliveryHandlers = [
     return HttpResponse.json(delivery)
   }),
 
-  // Stub: updates status only. Full validation/optimistic-update wiring lands in step 6.2.
   http.patch('/api/deliveries/:id/status', async ({ params, request }) => {
     await randomDelay()
     const delivery = db.deliveries.find((d) => d.id === params.id)
@@ -62,6 +61,21 @@ export const deliveryHandlers = [
     }
 
     delivery.status = result.data
+
+    // Free up the driver/vehicle once the delivery reaches a terminal state
+    // (the driver<->vehicle pairing itself stays intact — they're still
+    // that driver's regular vehicle, just no longer mid-delivery — only the
+    // "actively engaged" status reverts), so they become selectable for the
+    // next assignment again.
+    if (result.data === 'delivered' || result.data === 'cancelled') {
+      const driver = delivery.driverId ? db.drivers.find((d) => d.id === delivery.driverId) : null
+      const vehicle = delivery.vehicleId
+        ? db.vehicles.find((v) => v.id === delivery.vehicleId)
+        : null
+      if (driver?.status === 'driving') driver.status = 'available'
+      if (vehicle?.status === 'in_use') vehicle.status = 'available'
+    }
+
     return HttpResponse.json(delivery)
   }),
 ]

@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Delivery } from '@/mock-api/schemas/delivery'
 import { deliveryKeys } from './query-keys'
+import { driverKeys } from '@/features/drivers/hooks/query-keys'
+import { vehicleKeys } from '@/features/vehicles/hooks/query-keys'
 
 interface AssignInput {
   deliveryId: string
@@ -25,6 +27,11 @@ export function useAssignDelivery() {
     onSuccess: (_data, { deliveryId }) => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.detail(deliveryId) })
       queryClient.invalidateQueries({ queryKey: deliveryKeys.lists() })
+      // Assigning also updates the driver's and vehicle's own records
+      // (assignedVehicleId/driverId, status) server-side — see
+      // mock-api/handlers/dispatch.ts.
+      queryClient.invalidateQueries({ queryKey: driverKeys.all })
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.all })
     },
   })
 }

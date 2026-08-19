@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Delivery, DeliveryStatus } from '@/mock-api/schemas/delivery'
 import { deliveryKeys } from './query-keys'
+import { driverKeys } from '@/features/drivers/hooks/query-keys'
+import { vehicleKeys } from '@/features/vehicles/hooks/query-keys'
 
 interface UpdateStatusInput {
   id: string
@@ -38,6 +40,10 @@ export function useUpdateDeliveryStatus() {
     onSettled: (_data, _error, { id }) => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: deliveryKeys.lists() })
+      // 'delivered'/'cancelled' also frees the driver/vehicle back to
+      // 'available' server-side — see mock-api/handlers/deliveries.ts.
+      queryClient.invalidateQueries({ queryKey: driverKeys.all })
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.all })
     },
   })
 }
