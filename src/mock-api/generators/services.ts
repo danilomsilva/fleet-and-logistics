@@ -1,10 +1,6 @@
 import { faker } from '@faker-js/faker'
 import type { ServiceRecord } from '../schemas/service'
-import {
-  servicePrioritySchema,
-  serviceStatusSchema,
-  serviceTypeSchema,
-} from '../schemas/service'
+import { servicePrioritySchema, serviceStatusSchema, serviceTypeSchema } from '../schemas/service'
 import type { Vehicle } from '../schemas/vehicle'
 
 export function generateServiceRecords(

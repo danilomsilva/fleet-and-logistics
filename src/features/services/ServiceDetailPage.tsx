@@ -116,9 +116,7 @@ export function ServiceDetailPage() {
               <Button
                 size="sm"
                 disabled={updateStatus.isPending || !vehicle?.driverId}
-                onClick={() =>
-                  handleStatusChange('in_progress', `Service ${record.id} started.`)
-                }
+                onClick={() => handleStatusChange('in_progress', `Service ${record.id} started.`)}
               >
                 Start
               </Button>

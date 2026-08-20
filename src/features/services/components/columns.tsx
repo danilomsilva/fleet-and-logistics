@@ -3,10 +3,7 @@ import { Link } from 'react-router'
 import type { ServiceRecord } from '@/mock-api/schemas/service'
 import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { dataTableFeatures } from '@/shared/components/data-table/data-table-features'
-import {
-  SERVICE_PRIORITY_CONFIG,
-  SERVICE_STATUS_CONFIG,
-} from '../service-status-config'
+import { SERVICE_PRIORITY_CONFIG, SERVICE_STATUS_CONFIG } from '../service-status-config'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',

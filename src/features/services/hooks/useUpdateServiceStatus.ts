@@ -8,10 +8,7 @@ interface UpdateStatusInput {
   status: ServiceStatus
 }
 
-async function updateServiceStatus({
-  id,
-  status,
-}: UpdateStatusInput): Promise<ServiceRecord> {
+async function updateServiceStatus({ id, status }: UpdateStatusInput): Promise<ServiceRecord> {
   const res = await fetch(`/api/services/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),

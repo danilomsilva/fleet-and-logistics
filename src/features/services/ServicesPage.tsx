@@ -20,10 +20,7 @@ import { ServiceFormDialog } from './components/ServiceFormDialog'
 const STATUS_ITEMS: Record<string, string> = {
   all: 'All statuses',
   ...Object.fromEntries(
-    serviceStatusSchema.options.map((status) => [
-      status,
-      SERVICE_STATUS_CONFIG[status].label,
-    ]),
+    serviceStatusSchema.options.map((status) => [status, SERVICE_STATUS_CONFIG[status].label]),
   ),
 }
 

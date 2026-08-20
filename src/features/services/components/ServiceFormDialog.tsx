@@ -113,9 +113,7 @@ export function ServiceFormDialog({ onOpenChange, record }: ServiceFormDialogPro
         <DialogHeader>
           <DialogTitle>{isEdit ? `Edit ${record.id}` : 'Add Service Record'}</DialogTitle>
           <DialogDescription>
-            {isEdit
-              ? "Update this service record's details."
-              : 'Schedule a new service record.'}
+            {isEdit ? "Update this service record's details." : 'Schedule a new service record.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -218,11 +216,7 @@ export function ServiceFormDialog({ onOpenChange, record }: ServiceFormDialogPro
             <label htmlFor="service-notes" className="text-sm font-medium">
               Notes
             </label>
-            <Input
-              id="service-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
+            <Input id="service-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         </div>
 

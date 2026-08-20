@@ -35,11 +35,8 @@ export const vehicleInputSchema = z
     driverId: z.string().nullable(),
     mileage: z.number().nonnegative(),
   })
-  .refine(
-    (input) => !(input.status === 'in_use' || input.status === 'service') || input.driverId,
-    {
-      message: 'A driver must be assigned when status is In use or Service',
-      path: ['driverId'],
-    },
-  )
+  .refine((input) => !(input.status === 'in_use' || input.status === 'service') || input.driverId, {
+    message: 'A driver must be assigned when status is In use or Service',
+    path: ['driverId'],
+  })
 export type VehicleInput = z.infer<typeof vehicleInputSchema>
