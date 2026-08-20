@@ -4,10 +4,8 @@ import { entityRefSchema } from './common'
 export const activityEventTypeSchema = z.enum([
   'delivery_created',
   'delivery_assigned',
-  'delivery_started',
   'delivery_delivered',
   'delivery_delayed',
-  'delivery_cancelled',
   'vehicle_status_changed',
   'vehicle_entered_service',
   'vehicle_exited_service',

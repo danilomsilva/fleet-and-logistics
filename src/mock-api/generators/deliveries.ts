@@ -5,11 +5,11 @@ import type { Driver } from '../schemas/driver'
 import type { Vehicle } from '../schemas/vehicle'
 import { irishTownGeoPoint } from './geo'
 
-const ASSIGNED_STATUSES: DeliveryStatus[] = ['assigned', 'in_transit', 'delivered', 'delayed']
+const ASSIGNED_STATUSES: DeliveryStatus[] = ['in_transit', 'delivered', 'delayed']
 // "Currently happening" statuses — the assigned driver/vehicle should reflect
 // their actual live status (an offline driver can't be mid-delivery). For
 // 'delivered', any driver/vehicle is fine since it's a past, point-in-time event.
-const ACTIVE_STATUSES: DeliveryStatus[] = ['assigned', 'in_transit', 'delayed']
+const ACTIVE_STATUSES: DeliveryStatus[] = ['in_transit', 'delayed']
 
 function pickActiveDriver(drivers: Driver[]): Driver {
   const pool = drivers.filter((d) => d.status !== 'offline')
@@ -32,18 +32,19 @@ export function generateDeliveries(
 ): Delivery[] {
   return Array.from({ length: count }, (_, i) => {
     const id = `DEL-${String(1000 + i)}`
+    // 'new' is the only unassigned state — Dispatch exists to move
+    // deliveries out of it. Every other status must carry a driver+vehicle.
     const isUnassigned = faker.datatype.boolean({ probability: 0.3 })
     const status: DeliveryStatus = isUnassigned
-      ? 'pending'
-      : faker.helpers.arrayElement<DeliveryStatus>([...ASSIGNED_STATUSES, 'cancelled'])
+      ? 'new'
+      : faker.helpers.arrayElement<DeliveryStatus>(ASSIGNED_STATUSES)
 
-    const isAssignable = !isUnassigned && status !== 'cancelled'
     const isActive = ACTIVE_STATUSES.includes(status)
-    const driver = isAssignable
-      ? isActive
+    const driver = isUnassigned
+      ? null
+      : isActive
         ? pickActiveDriver(drivers)
         : faker.helpers.arrayElement(drivers)
-      : null
     const vehicle = driver
       ? isActive
         ? pickVehicleFor(driver, vehicles)

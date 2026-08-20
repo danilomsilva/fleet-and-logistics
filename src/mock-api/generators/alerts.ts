@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import type { Alert, AlertType } from '../schemas/alert'
-import { alertPrioritySchema, alertStatusSchema, alertTypeSchema } from '../schemas/alert'
+import { alertStatusSchema, alertTypeSchema } from '../schemas/alert'
 import type { EntityRef } from '../schemas/common'
 import type { Delivery } from '../schemas/delivery'
 import type { Driver } from '../schemas/driver'
@@ -36,19 +36,32 @@ function pickRelatedEntity(type: AlertType, sources: AlertSources): EntityRef {
   }
 }
 
-export function generateAlerts(count: number, sources: AlertSources): Alert[] {
-  return Array.from({ length: count }, (_, i) => {
-    const id = `ALT-${String(i + 1).padStart(3, '0')}`
-    const type = faker.helpers.arrayElement(alertTypeSchema.options)
+/** Matches the 'delivery' vs 'fleet' split applyCategoryFilter derives from relatedEntity.kind. */
+const DELIVERY_TYPES: AlertType[] = ['delivery_delayed', 'assignment_conflict']
+const FLEET_TYPES: AlertType[] = alertTypeSchema.options.filter(
+  (type) => !DELIVERY_TYPES.includes(type),
+)
 
-    return {
-      id,
-      type,
-      priority: faker.helpers.arrayElement(alertPrioritySchema.options),
-      status: faker.helpers.arrayElement(alertStatusSchema.options),
-      relatedEntity: pickRelatedEntity(type, sources),
-      message: MESSAGES[type],
-      timestamp: faker.date.recent({ days: 5 }).toISOString(),
-    }
-  })
+function buildAlert(index: number, type: AlertType, sources: AlertSources): Alert {
+  return {
+    id: `ALT-${String(index + 1).padStart(3, '0')}`,
+    type,
+    status: faker.helpers.arrayElement(alertStatusSchema.options),
+    relatedEntity: pickRelatedEntity(type, sources),
+    message: MESSAGES[type],
+    timestamp: faker.date.recent({ days: 5 }).toISOString(),
+  }
+}
+
+export function generateAlerts(
+  counts: { delivery: number; fleet: number },
+  sources: AlertSources,
+): Alert[] {
+  const deliveryAlerts = Array.from({ length: counts.delivery }, (_, i) =>
+    buildAlert(i, faker.helpers.arrayElement(DELIVERY_TYPES), sources),
+  )
+  const fleetAlerts = Array.from({ length: counts.fleet }, (_, i) =>
+    buildAlert(counts.delivery + i, faker.helpers.arrayElement(FLEET_TYPES), sources),
+  )
+  return [...deliveryAlerts, ...fleetAlerts]
 }

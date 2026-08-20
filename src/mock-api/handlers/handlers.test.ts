@@ -207,7 +207,52 @@ describe('drivers handlers', () => {
 })
 
 describe('deliveries handlers', () => {
-  it('paginates deliveries and applies the destination filter', async () => {
+  it('creates a delivery and rejects an invalid payload', async () => {
+    const countBefore = db.deliveries.length
+    const res = await fetch(`${BASE}/api/deliveries`, {
+      method: 'POST',
+      body: JSON.stringify({
+        customer: 'Test Customer',
+        pickup: 'Dublin',
+        destination: 'Cork',
+        requiredVehicleType: 'van',
+        priority: 'medium',
+        scheduledTime: '2026-09-01T00:00:00.000Z',
+        notes: '',
+      }),
+    })
+    expect(res.status).toBe(201)
+    const created = await res.json()
+    expect(created.status).toBe('new')
+    expect(created.driverId).toBeNull()
+    expect(created.vehicleId).toBeNull()
+    expect(created.pickup.label).toBe('Dublin')
+    expect(created.destination.label).toBe('Cork')
+    expect(created.distanceKm).toBeGreaterThan(0)
+    expect(db.deliveries.length).toBe(countBefore + 1)
+
+    const invalid = await fetch(`${BASE}/api/deliveries`, {
+      method: 'POST',
+      body: JSON.stringify({ customer: '' }),
+    })
+    expect(invalid.status).toBe(400)
+
+    const sameTown = await fetch(`${BASE}/api/deliveries`, {
+      method: 'POST',
+      body: JSON.stringify({
+        customer: 'Test Customer',
+        pickup: 'Dublin',
+        destination: 'Dublin',
+        requiredVehicleType: 'van',
+        priority: 'medium',
+        scheduledTime: '2026-09-01T00:00:00.000Z',
+        notes: '',
+      }),
+    })
+    expect(sameTown.status).toBe(400)
+  })
+
+  it('paginates deliveries and searches by destination', async () => {
     const res = await fetch(`${BASE}/api/deliveries?pageSize=5`)
     const body = await res.json()
     expect(body.data.length).toBeLessThanOrEqual(5)
@@ -216,10 +261,26 @@ describe('deliveries handlers', () => {
     const target = db.deliveries[0]
     const word = target.destination.label.split(' ')[0]
     const filtered = await fetch(
-      `${BASE}/api/deliveries?destination=${encodeURIComponent(word)}&pageSize=200`,
+      `${BASE}/api/deliveries?q=${encodeURIComponent(word)}&pageSize=200`,
     )
     const filteredBody = await filtered.json()
     expect(filteredBody.data.some((d: { id: string }) => d.id === target.id)).toBe(true)
+  })
+
+  it('search also matches customer and delivery id', async () => {
+    const target = db.deliveries[0]
+    const byId = await fetch(
+      `${BASE}/api/deliveries?q=${encodeURIComponent(target.id)}&pageSize=200`,
+    )
+    expect((await byId.json()).data.some((d: { id: string }) => d.id === target.id)).toBe(true)
+
+    const word = target.customer.split(' ')[0]
+    const byCustomer = await fetch(
+      `${BASE}/api/deliveries?q=${encodeURIComponent(word)}&pageSize=200`,
+    )
+    expect((await byCustomer.json()).data.some((d: { id: string }) => d.id === target.id)).toBe(
+      true,
+    )
   })
 
   it('updates delivery status via the mutation stub', async () => {
@@ -303,15 +364,15 @@ describe('service handlers', () => {
     expect(completed.status).toBe(200)
     expect(target.status).toBe('completed')
     expect(vehicle.status).toBe('available')
-    expect(vehicle.serviceStatus).toBe('overdue')
+    expect(vehicle.serviceStatus).toBe('up_to_date')
   })
 })
 
 describe('alerts handlers', () => {
-  it('filters alerts by priority', async () => {
-    const target = db.alerts.find((a) => a.priority === 'critical')
+  it('filters alerts by type', async () => {
+    const target = db.alerts.find((a) => a.type === 'vehicle_offline')
     if (!target) return
-    const res = await fetch(`${BASE}/api/alerts?priority=critical&pageSize=200`)
+    const res = await fetch(`${BASE}/api/alerts?type=vehicle_offline&pageSize=200`)
     const body = await res.json()
     expect(body.data.some((a: { id: string }) => a.id === target.id)).toBe(true)
   })
@@ -348,7 +409,7 @@ describe('activity handlers', () => {
 
 describe('dispatch handlers', () => {
   it('assigns a driver and vehicle to a pending delivery, and links them to each other', async () => {
-    const target = db.deliveries.find((d) => d.status === 'pending')
+    const target = db.deliveries.find((d) => d.status === 'new')
     if (!target) return
     const driver = db.drivers[0]
     const vehicle = db.vehicles.find((v) => v.id !== driver.assignedVehicleId)!
@@ -361,7 +422,7 @@ describe('dispatch handlers', () => {
     const body = await res.json()
     expect(body.driverId).toBe(driver.id)
     expect(body.vehicleId).toBe(vehicle.id)
-    expect(body.status).toBe('assigned')
+    expect(body.status).toBe('in_transit')
 
     // The assignment must also show up on the driver's and vehicle's own
     // records, not just the delivery — this was the actual bug.
@@ -372,7 +433,7 @@ describe('dispatch handlers', () => {
   })
 
   it('assigning a vehicle already linked to another driver steals it away from them', async () => {
-    const target = db.deliveries.find((d) => d.status === 'pending')
+    const target = db.deliveries.find((d) => d.status === 'new')
     if (!target) return
     const previousDriver = db.drivers.find((d) => d.assignedVehicleId !== null)!
     const newDriver = db.drivers.find((d) => d.id !== previousDriver.id)!

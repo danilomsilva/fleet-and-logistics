@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import type { GeoPoint } from '../schemas/common'
 
-const IRISH_TOWNS: [string, number, number][] = [
+export const IRISH_TOWNS: [string, number, number][] = [
   ['Dublin', 53.3498, -6.2603],
   ['Cork', 51.8985, -8.4756],
   ['Limerick', 52.6638, -8.6267],
@@ -33,4 +33,27 @@ export function irishTownGeoPoint(): GeoPoint {
 export function warehouseGeoPoint(): GeoPoint {
   const [label, lat, lng] = IRISH_TOWNS.find(([name]) => name === 'Dundalk')!
   return { lat, lng, label }
+}
+
+/** Resolves a town name (as offered by the Add Delivery form) to its GeoPoint. */
+export function townGeoPoint(name: string): GeoPoint | null {
+  const town = IRISH_TOWNS.find(([label]) => label === name)
+  if (!town) return null
+  const [label, lat, lng] = town
+  return { lat, lng, label }
+}
+
+const EARTH_RADIUS_KM = 6371
+
+/** Straight-line (haversine) distance — matches the straight-line route the
+ * delivery detail map actually draws, rather than implying real road distance. */
+export function distanceKm(a: GeoPoint, b: GeoPoint): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2)
+  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
+  return Math.round(EARTH_RADIUS_KM * c * 10) / 10
 }

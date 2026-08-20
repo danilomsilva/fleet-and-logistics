@@ -37,8 +37,8 @@ export const dispatchHandlers = [
 
     delivery.driverId = driver.id
     delivery.vehicleId = vehicle.id
-    if (delivery.status === 'pending') {
-      delivery.status = 'assigned'
+    if (delivery.status === 'new') {
+      delivery.status = 'in_transit'
     }
 
     // Keep the driver<->vehicle pairing consistent on both sides, freeing up

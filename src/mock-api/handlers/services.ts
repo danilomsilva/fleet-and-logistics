@@ -10,7 +10,7 @@ import {
 } from './query-utils'
 import type { ServiceRecord } from '../schemas/service'
 import { serviceInputSchema, serviceStatusSchema } from '../schemas/service'
-import { computeVehicleServiceStatus } from '../service-status'
+import { computeServiceRecordStatus, computeVehicleServiceStatus } from '../service-status'
 
 function applyDateFilter(items: ServiceRecord[], url: URL): ServiceRecord[] {
   const date = url.searchParams.get('date')
@@ -76,6 +76,7 @@ export const serviceHandlers = [
       mileage: input.mileage,
       notes: input.notes,
     }
+    record.status = computeServiceRecordStatus(record)
     db.serviceRecords.push(record)
 
     return HttpResponse.json(record, { status: 201 })
@@ -101,6 +102,7 @@ export const serviceHandlers = [
     }
 
     Object.assign(record, result.data)
+    record.status = computeServiceRecordStatus(record)
 
     return HttpResponse.json(record)
   }),
@@ -150,8 +152,11 @@ export const serviceHandlers = [
     if (vehicle) {
       if (result.data === 'in_progress') {
         vehicle.status = 'service'
-      } else if (result.data === 'completed' && vehicle.status === 'service') {
-        vehicle.status = 'available'
+      } else if (result.data === 'completed') {
+        if (vehicle.status === 'service') vehicle.status = 'available'
+        const nextServiceDate = new Date()
+        nextServiceDate.setDate(nextServiceDate.getDate() + 90)
+        vehicle.nextServiceDate = nextServiceDate.toISOString()
       }
       vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
     }

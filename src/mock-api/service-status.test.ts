@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeVehicleServiceStatus } from './service-status'
+import { computeServiceRecordStatus, computeVehicleServiceStatus } from './service-status'
 
 const TODAY = new Date('2026-08-19T12:00:00.000Z')
 
@@ -37,5 +37,55 @@ describe('computeVehicleServiceStatus', () => {
   it('is OK when there is no next service date', () => {
     const status = computeVehicleServiceStatus({ nextServiceDate: null }, TODAY)
     expect(status).toBe('up_to_date')
+  })
+})
+
+describe('computeServiceRecordStatus', () => {
+  it('is due when the scheduled date is today', () => {
+    const status = computeServiceRecordStatus(
+      { status: 'scheduled', scheduledDate: daysFromToday(0) },
+      TODAY,
+    )
+    expect(status).toBe('due')
+  })
+
+  it('is due when the scheduled date is in the past', () => {
+    const status = computeServiceRecordStatus(
+      { status: 'scheduled', scheduledDate: daysFromToday(-5) },
+      TODAY,
+    )
+    expect(status).toBe('due')
+  })
+
+  it('is due between tomorrow and 30 days out', () => {
+    expect(
+      computeServiceRecordStatus({ status: 'scheduled', scheduledDate: daysFromToday(1) }, TODAY),
+    ).toBe('due')
+    expect(
+      computeServiceRecordStatus({ status: 'scheduled', scheduledDate: daysFromToday(30) }, TODAY),
+    ).toBe('due')
+  })
+
+  it('is scheduled beyond 30 days out', () => {
+    const status = computeServiceRecordStatus(
+      { status: 'scheduled', scheduledDate: daysFromToday(31) },
+      TODAY,
+    )
+    expect(status).toBe('scheduled')
+  })
+
+  it('leaves in-progress and completed records untouched regardless of date', () => {
+    expect(
+      computeServiceRecordStatus(
+        { status: 'in_progress', scheduledDate: daysFromToday(-100) },
+        TODAY,
+      ),
+    ).toBe('in_progress')
+    expect(
+      computeServiceRecordStatus(
+        { status: 'completed', scheduledDate: daysFromToday(-100) },
+        TODAY,
+      ),
+    ).toBe('completed')
   })
 })

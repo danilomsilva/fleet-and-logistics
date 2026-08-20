@@ -39,6 +39,26 @@ function relinkDriver(
   }
 }
 
+/** 'in_use' and its driver's 'driving' are two sides of the same fact — keeps
+ * the assigned driver's status in sync whenever a vehicle's status is set
+ * directly (edit form, bulk actions), not just through the dedicated
+ * assign/deliver flows that already handle both sides together. */
+function syncDriverStatus(vehicle: Vehicle, previousStatus: Vehicle['status']) {
+  if (!vehicle.driverId) return
+  const driver = db.drivers.find((d) => d.id === vehicle.driverId)
+  if (!driver) return
+
+  if (vehicle.status === 'in_use' && previousStatus !== 'in_use') {
+    driver.status = 'driving'
+  } else if (
+    vehicle.status !== 'in_use' &&
+    previousStatus === 'in_use' &&
+    driver.status === 'driving'
+  ) {
+    driver.status = 'available'
+  }
+}
+
 export const vehicleHandlers = [
   http.get('/api/vehicles', async ({ request }) => {
     await randomDelay()
@@ -92,6 +112,7 @@ export const vehicleHandlers = [
     }
     db.vehicles.push(vehicle)
     relinkDriver(vehicle.id, null, vehicle.driverId)
+    syncDriverStatus(vehicle, 'available')
 
     return HttpResponse.json(vehicle, { status: 201 })
   }),
@@ -115,10 +136,12 @@ export const vehicleHandlers = [
     }
 
     const input = result.data
+    const previousStatus = vehicle.status
     relinkDriver(vehicle.id, vehicle.driverId, input.driverId)
     Object.assign(vehicle, input, { lastUpdatedAt: new Date().toISOString() })
     vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
     if (vehicle.status === 'broken') vehicle.location = warehouseGeoPoint()
+    syncDriverStatus(vehicle, previousStatus)
 
     return HttpResponse.json(vehicle)
   }),
@@ -150,9 +173,11 @@ export const vehicleHandlers = [
       return HttpResponse.json({ message: 'Invalid vehicle status' }, { status: 400 })
     }
 
+    const previousStatus = vehicle.status
     vehicle.status = result.data
     if (vehicle.status === 'broken') vehicle.location = warehouseGeoPoint()
     vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
+    syncDriverStatus(vehicle, previousStatus)
     return HttpResponse.json(vehicle)
   }),
 ]

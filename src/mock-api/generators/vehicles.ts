@@ -25,6 +25,46 @@ const IRISH_VAN_MODELS: [string, string][] = [
 
 const REGULAR_STATUSES: VehicleStatus[] = ['available', 'in_use']
 
+/** Official Irish vehicle-registration county codes. */
+const IRISH_COUNTY_CODES = [
+  'C',
+  'CE',
+  'CN',
+  'CW',
+  'D',
+  'DL',
+  'G',
+  'KE',
+  'KK',
+  'KY',
+  'L',
+  'LD',
+  'LH',
+  'LM',
+  'LS',
+  'MH',
+  'MN',
+  'MO',
+  'OY',
+  'RN',
+  'SO',
+  'T',
+  'W',
+  'WH',
+  'WW',
+  'WX',
+]
+
+/** Irish reg format: YYS-CC-N, e.g. "181-D-12345" — YY is the year, S is
+ * 1 or 2 for the half of the year, CC is the county code, N is up to 5 digits. */
+function irishRegistration(): string {
+  const year = faker.number.int({ min: 10, max: 26 })
+  const half = faker.helpers.arrayElement([1, 2])
+  const county = faker.helpers.arrayElement(IRISH_COUNTY_CODES)
+  const sequence = faker.number.int({ min: 1, max: 99999 })
+  return `${year}${half}-${county}-${sequence}`
+}
+
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
@@ -64,7 +104,7 @@ export function generateVehicles(count: number): Vehicle[] {
     return {
       id: `VH-${String(i + 1).padStart(3, '0')}`,
       name: `${make} ${model}`,
-      registration: faker.vehicle.vrm(),
+      registration: irishRegistration(),
       type: 'van',
       status,
       driverId: null,

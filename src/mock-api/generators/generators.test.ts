@@ -52,6 +52,7 @@ describe('generateDeliveries', () => {
 
     expect(deliveries).toHaveLength(40)
     expect(deliveries.some((d) => d.driverId === null)).toBe(true)
+    expect(deliveries.every((d) => d.status === 'new' || (d.driverId && d.vehicleId))).toBe(true)
 
     for (const delivery of deliveries) {
       if (delivery.driverId) {
@@ -68,7 +69,7 @@ describe('generateDeliveries', () => {
     const drivers = generateDrivers(10)
     const deliveries = generateDeliveries(60, { vehicles, drivers })
 
-    const activeStatuses = ['assigned', 'in_transit', 'delayed']
+    const activeStatuses = ['in_transit', 'delayed']
     const activeDeliveries = deliveries.filter((d) => activeStatuses.includes(d.status))
     expect(activeDeliveries.length).toBeGreaterThan(0)
 
@@ -103,7 +104,10 @@ describe('generateAlerts', () => {
     const drivers = generateDrivers(5)
     const deliveries = generateDeliveries(10, { vehicles, drivers })
     const serviceRecords = generateServiceRecords(5, { vehicles })
-    const alerts = generateAlerts(20, { vehicles, drivers, deliveries, serviceRecords })
+    const alerts = generateAlerts(
+      { delivery: 10, fleet: 10 },
+      { vehicles, drivers, deliveries, serviceRecords },
+    )
 
     expect(alerts).toHaveLength(20)
     const expectedKind = {
@@ -126,7 +130,10 @@ describe('generateActivityEvents', () => {
     const drivers = generateDrivers(5)
     const deliveries = generateDeliveries(10, { vehicles, drivers })
     const serviceRecords = generateServiceRecords(5, { vehicles })
-    const alerts = generateAlerts(5, { vehicles, drivers, deliveries, serviceRecords })
+    const alerts = generateAlerts(
+      { delivery: 3, fleet: 2 },
+      { vehicles, drivers, deliveries, serviceRecords },
+    )
     const activity = generateActivityEvents(30, {
       vehicles,
       drivers,
@@ -135,10 +142,44 @@ describe('generateActivityEvents', () => {
       alerts,
     })
 
-    expect(activity).toHaveLength(30)
+    // 30 random (non-delivery) events plus a deterministic per-delivery trail.
+    expect(activity.length).toBeGreaterThan(30)
     for (const event of activity) {
       expect(event.type).toBeTruthy()
       expect(event.relatedEntity.id).toBeTruthy()
+    }
+  })
+
+  it('gives every delivery a full history through to its current status', () => {
+    const vehicles = generateVehicles(10)
+    const drivers = generateDrivers(10)
+    const deliveries = generateDeliveries(40, { vehicles, drivers })
+    const serviceRecords = generateServiceRecords(5, { vehicles })
+    const alerts = generateAlerts(
+      { delivery: 3, fleet: 2 },
+      { vehicles, drivers, deliveries, serviceRecords },
+    )
+    const activity = generateActivityEvents(0, {
+      vehicles,
+      drivers,
+      deliveries,
+      serviceRecords,
+      alerts,
+    })
+
+    for (const delivery of deliveries) {
+      const trail = activity.filter(
+        (e) => e.relatedEntity.kind === 'delivery' && e.relatedEntity.id === delivery.id,
+      )
+      const types = trail.map((e) => e.type)
+
+      expect(types).toContain('delivery_created')
+      if (delivery.status !== 'new') expect(types).toContain('delivery_assigned')
+      if (delivery.status === 'delivered') expect(types).toContain('delivery_delivered')
+      if (delivery.status === 'delayed') expect(types).toContain('delivery_delayed')
+
+      const timestamps = trail.map((e) => new Date(e.timestamp).getTime())
+      expect(timestamps).toEqual([...timestamps].sort((a, b) => a - b))
     }
   })
 })

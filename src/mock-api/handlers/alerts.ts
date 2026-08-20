@@ -26,9 +26,9 @@ export const alertHandlers = [
 
     let items: Alert[] = [...db.alerts]
     items = applyTextSearch(items, url, ['message'])
-    items = applyExactFilters(items, url, ['status', 'type', 'priority'])
+    items = applyExactFilters(items, url, ['status', 'type'])
     items = applyCategoryFilter(items, url)
-    items = applySort(items, url, ['timestamp', 'priority'])
+    items = applySort(items, url, ['timestamp'])
 
     return HttpResponse.json(paginate(items, parsePageParams(url)))
   }),

@@ -45,6 +45,26 @@ function relinkVehicle(
   }
 }
 
+/** 'driving' and the vehicle's 'in_use' are two sides of the same fact —
+ * keeps the assigned vehicle's status in sync whenever a driver's status is
+ * set directly (edit form, bulk actions), not just through the dedicated
+ * assign/deliver flows that already handle both sides together. */
+function syncVehicleStatus(driver: Driver, previousStatus: Driver['status']) {
+  if (!driver.assignedVehicleId) return
+  const vehicle = db.vehicles.find((v) => v.id === driver.assignedVehicleId)
+  if (!vehicle) return
+
+  if (driver.status === 'driving' && previousStatus !== 'driving') {
+    vehicle.status = 'in_use'
+  } else if (
+    driver.status !== 'driving' &&
+    previousStatus === 'driving' &&
+    vehicle.status === 'in_use'
+  ) {
+    vehicle.status = 'available'
+  }
+}
+
 export const driverHandlers = [
   http.get('/api/drivers', async ({ request }) => {
     await randomDelay()
@@ -98,6 +118,7 @@ export const driverHandlers = [
     }
     db.drivers.push(driver)
     relinkVehicle(driver.id, null, driver.assignedVehicleId)
+    syncVehicleStatus(driver, 'available')
 
     return HttpResponse.json(driver, { status: 201 })
   }),
@@ -119,8 +140,10 @@ export const driverHandlers = [
     }
 
     const input = result.data
+    const previousStatus = driver.status
     relinkVehicle(driver.id, driver.assignedVehicleId, input.assignedVehicleId)
     Object.assign(driver, input, { lastActiveAt: new Date().toISOString() })
+    syncVehicleStatus(driver, previousStatus)
 
     return HttpResponse.json(driver)
   }),
@@ -151,7 +174,9 @@ export const driverHandlers = [
       return HttpResponse.json({ message: 'Invalid driver status' }, { status: 400 })
     }
 
+    const previousStatus = driver.status
     driver.status = result.data
+    syncVehicleStatus(driver, previousStatus)
     return HttpResponse.json(driver)
   }),
 ]
