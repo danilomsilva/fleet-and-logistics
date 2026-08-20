@@ -58,8 +58,7 @@ Each KPI should show a relevant trend/change where appropriate.
 
 Chart showing deliveries by status:
 
-- Pending
-- Assigned
+- New
 - In transit
 - Delivered
 - Delayed
@@ -92,7 +91,7 @@ Clicking an activity should navigate to the relevant entity.
 
 ### Alerts
 
-Show the most important active alerts with priority indicators.
+Show the most recent active alerts.
 
 ## 4. Vehicles
 
@@ -202,24 +201,20 @@ This should be the largest data-heavy screen.
 Columns:
 
 - Delivery ID
-- Customer
 - Pickup
 - Destination
 - Driver
 - Vehicle
 - Priority
 - Status
-- ETA
-- Scheduled time
+- Scheduled delivery
 
 Statuses:
 
-- Pending
-- Assigned
+- New
 - In transit
 - Delivered
 - Delayed
-- Cancelled
 
 Features:
 
@@ -228,8 +223,6 @@ Features:
 - Filtering
 - Pagination
 - Column visibility
-- Row selection
-- Bulk actions
 
 Filters:
 
@@ -238,7 +231,8 @@ Filters:
 - Driver
 - Vehicle
 - Date
-- Destination
+
+Search covers delivery ID, customer, and destination together.
 
 Filters should be reflected in the URL so the current view can be bookmarked/shared.
 
@@ -251,7 +245,6 @@ Show:
 - Assigned driver
 - Assigned vehicle
 - Status
-- ETA
 - Scheduled time
 - Priority
 - Notes
@@ -261,8 +254,7 @@ Actions depend on the delivery state.
 
 For example:
 
-- Pending → Assign
-- Assigned → Start delivery
+- New → Assign (moves straight to In transit — there is no separate "assigned but not moving" state)
 - In transit → Mark delivered
 - Any active state → Report delay
 
@@ -276,18 +268,11 @@ Use a map + operational list layout.
 
 ### Map
 
-Display:
-
-- Vehicles
-- Drivers
-- Delivery locations
-- Selected delivery
-
-Different markers should represent different states.
+Display only deliveries available to be picked up (new) — no vehicles, drivers, or anything else. Clicking a pickup marker opens the assignment wizard for that delivery.
 
 ### Dispatch panel
 
-Show unassigned deliveries.
+Show new deliveries available to be picked up.
 
 Each delivery displays:
 
@@ -297,10 +282,7 @@ Each delivery displays:
 - Estimated distance
 - Required vehicle type
 
-Dispatcher can select a delivery and assign:
-
-- Driver
-- Vehicle
+Dispatcher can select a delivery and assign a driver — every driver already has a vehicle assigned to them, so the vehicle comes along automatically rather than being picked separately.
 
 After assignment, the delivery moves from the unassigned list to the active schedule.
 
@@ -310,8 +292,6 @@ After assignment, the delivery moves from the unassigned list to the active sche
 Select delivery
       ↓
 Select driver
-      ↓
-Select vehicle
       ↓
 Review assignment
       ↓
@@ -327,6 +307,7 @@ The UI should prevent obvious conflicts, such as assigning an unavailable driver
 Show:
 
 - Vehicle
+- Registration
 - Service type
 - Status
 - Scheduled date
@@ -382,7 +363,6 @@ Alert types:
 
 Each alert has:
 
-- Priority
 - Type
 - Related entity
 - Timestamp
