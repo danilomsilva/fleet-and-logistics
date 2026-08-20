@@ -29,7 +29,6 @@ export function createDeliveryColumns(
         </Link>
       ),
     }),
-    helper.accessor('customer', { header: 'Customer' }),
     helper.accessor((row) => row.pickup.label, { id: 'pickup', header: 'Pickup' }),
     helper.accessor((row) => row.destination.label, { id: 'destination', header: 'Destination' }),
     helper.accessor('driverId', {

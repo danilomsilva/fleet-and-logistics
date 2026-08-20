@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type WizardStep = 'driver' | 'vehicle' | 'review'
+export type WizardStep = 'driver' | 'review'
 
 interface DispatchWizardState {
   isOpen: boolean
@@ -10,8 +10,7 @@ interface DispatchWizardState {
   vehicleId: string | null
   open: (deliveryId: string) => void
   close: () => void
-  selectDriver: (driverId: string) => void
-  selectVehicle: (vehicleId: string) => void
+  selectDriver: (driverId: string, vehicleId: string) => void
   goToStep: (step: WizardStep) => void
 }
 
@@ -23,12 +22,15 @@ const initialState = {
   vehicleId: null,
 }
 
-/** Backs the Dispatch assignment wizard (select delivery -> driver -> vehicle -> review -> confirm). */
+/** Backs the Dispatch assignment wizard (select delivery -> driver -> review ->
+ * confirm). The vehicle isn't picked separately — every driver already has
+ * one assigned vehicle, so its id is captured alongside the driver's at
+ * selection time (not re-derived later, which would be vulnerable to the
+ * underlying driver/vehicle queries refetching before confirmation). */
 export const useDispatchWizard = create<DispatchWizardState>((set) => ({
   ...initialState,
   open: (deliveryId) => set({ ...initialState, isOpen: true, deliveryId }),
   close: () => set({ ...initialState }),
-  selectDriver: (driverId) => set({ driverId, step: 'vehicle' }),
-  selectVehicle: (vehicleId) => set({ vehicleId, step: 'review' }),
+  selectDriver: (driverId, vehicleId) => set({ driverId, vehicleId, step: 'review' }),
   goToStep: (step) => set({ step }),
 }))

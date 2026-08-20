@@ -19,13 +19,11 @@ import { useDispatchWizard } from '../dispatch-store'
 
 const STEPS = [
   { key: 'driver', label: 'Driver' },
-  { key: 'vehicle', label: 'Vehicle' },
   { key: 'review', label: 'Review' },
 ] as const
 
 export function AssignmentWizardDialog() {
-  const { isOpen, step, deliveryId, driverId, vehicleId, close, selectDriver, selectVehicle } =
-    useDispatchWizard()
+  const { isOpen, step, deliveryId, driverId, vehicleId, close, selectDriver } = useDispatchWizard()
 
   const { data: delivery } = useDelivery(deliveryId ?? '')
   const { data: driversData } = useDrivers({ status: 'available', pageSize: 200 })
@@ -35,6 +33,14 @@ export function AssignmentWizardDialog() {
     pageSize: 200,
   })
   const assignMutation = useAssignDelivery()
+
+  // Every driver already has a vehicle assigned to them — the dispatcher only
+  // picks a driver, and that vehicle comes along automatically. Only drivers
+  // whose own vehicle is available and of the right type are selectable.
+  const eligibleVehicleIds = new Set((vehiclesData?.data ?? []).map((v) => v.id))
+  const eligibleDrivers = (driversData?.data ?? []).filter(
+    (d) => d.assignedVehicleId && eligibleVehicleIds.has(d.assignedVehicleId),
+  )
 
   const selectedDriver = driversData?.data.find((d) => d.id === driverId)
   const selectedVehicle = vehiclesData?.data.find((v) => v.id === vehicleId)
@@ -81,39 +87,20 @@ export function AssignmentWizardDialog() {
         </ol>
 
         {step === 'driver' &&
-          (driversData && driversData.data.length === 0 ? (
-            <EmptyState title="No available drivers right now." />
-          ) : (
-            <ul className="max-h-64 space-y-1 overflow-y-auto">
-              {driversData?.data.map((driver) => (
-                <li key={driver.id}>
-                  <button
-                    type="button"
-                    onClick={() => selectDriver(driver.id)}
-                    className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {driver.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ))}
-
-        {step === 'vehicle' &&
-          (vehiclesData && vehiclesData.data.length === 0 ? (
+          (driversData && vehiclesData && eligibleDrivers.length === 0 ? (
             <EmptyState
-              title={`No available ${delivery?.requiredVehicleType ?? ''} vehicles right now.`}
+              title={`No drivers with an available ${delivery?.requiredVehicleType ?? ''} vehicle right now.`}
             />
           ) : (
             <ul className="max-h-64 space-y-1 overflow-y-auto">
-              {vehiclesData?.data.map((vehicle) => (
-                <li key={vehicle.id}>
+              {eligibleDrivers.map((driver) => (
+                <li key={driver.id}>
                   <button
                     type="button"
-                    onClick={() => selectVehicle(vehicle.id)}
+                    onClick={() => selectDriver(driver.id, driver.assignedVehicleId!)}
                     className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    {vehicle.name}
+                    {driver.name}
                   </button>
                 </li>
               ))}

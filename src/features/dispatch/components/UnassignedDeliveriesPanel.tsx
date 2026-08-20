@@ -7,15 +7,15 @@ import { DELIVERY_PRIORITY_CONFIG } from '@/features/deliveries/delivery-status-
 import { useDispatchWizard } from '../dispatch-store'
 
 export function UnassignedDeliveriesPanel() {
-  const { data, isLoading } = useDeliveries({ status: 'pending', pageSize: 100, sort: 'priority' })
+  const { data, isLoading } = useDeliveries({ status: 'new', pageSize: 100, sort: 'priority' })
   const open = useDispatchWizard((s) => s.open)
 
   const deliveries = data?.data ?? []
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 rounded-lg border p-4">
+    <div className="flex h-full min-h-0 flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium">Unassigned deliveries</h2>
+        <h2 className="text-sm font-medium">New deliveries available</h2>
         <span className="text-xs text-muted-foreground">{data?.total ?? 0}</span>
       </div>
 
@@ -37,7 +37,7 @@ export function UnassignedDeliveriesPanel() {
                 <div className="min-w-0 space-y-1">
                   <p className="truncate text-sm font-medium">{delivery.id}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {delivery.destination.label}
+                    {delivery.pickup.label} &rarr; {delivery.destination.label}
                   </p>
                   <StatusBadge label={priority.label} tone={priority.tone} icon={priority.icon} />
                 </div>

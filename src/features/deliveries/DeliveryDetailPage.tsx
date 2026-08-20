@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DetailPageSkeleton } from '@/shared/components/skeletons/DetailPageSkeleton'
 import { ErrorState } from '@/shared/components/error-state/ErrorState'
@@ -25,7 +26,7 @@ function formatDateOnly(value: string | null) {
   return value ? dateOnlyFormatter.format(new Date(value)) : '—'
 }
 
-const ACTIVE_STATUSES: DeliveryStatus[] = ['pending', 'assigned', 'in_transit', 'delayed']
+const ACTIVE_STATUSES: DeliveryStatus[] = ['new', 'in_transit', 'delayed']
 
 export function DeliveryDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -61,63 +62,14 @@ export function DeliveryDetailPage() {
     )
   }
 
-  const fields: [string, React.ReactNode][] = [
-    ['Customer', delivery.customer],
-    ['Pickup', delivery.pickup.label],
-    ['Destination', delivery.destination.label],
-    [
-      'Driver',
-      driver ? (
-        <Link to={`/drivers/${driver.id}`} className="hover:underline">
-          {driver.name}
-        </Link>
-      ) : (
-        'Unassigned'
-      ),
-    ],
-    [
-      'Vehicle',
-      vehicle ? (
-        <Link to={`/vehicles/${vehicle.id}`} className="hover:underline">
-          {vehicle.name}
-        </Link>
-      ) : (
-        '—'
-      ),
-    ],
-    [
-      'Priority',
-      <StatusBadge
-        label={priorityConfig.label}
-        tone={priorityConfig.tone}
-        icon={priorityConfig.icon}
-      />,
-    ],
-    [
-      'Status',
-      <StatusBadge label={statusConfig.label} tone={statusConfig.tone} icon={statusConfig.icon} />,
-    ],
-    ['Scheduled delivery', formatDateOnly(delivery.scheduledTime)],
-    ['Notes', delivery.notes || '—'],
-  ]
-
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{delivery.id}</h1>
         <div className="flex flex-wrap gap-2">
-          {delivery.status === 'pending' && (
+          {delivery.status === 'new' && (
             <Button size="sm" onClick={() => setAssignOpen(true)}>
               Assign
-            </Button>
-          )}
-          {delivery.status === 'assigned' && (
-            <Button
-              size="sm"
-              disabled={updateStatus.isPending}
-              onClick={() => handleStatusChange('in_transit', `Delivery ${delivery.id} started.`)}
-            >
-              Start delivery
             </Button>
           )}
           {delivery.status === 'in_transit' && (
@@ -146,23 +98,94 @@ export function DeliveryDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {fields.map(([label, value]) => (
-          <div key={label} className="space-y-1 rounded-lg border p-4">
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <div className="text-sm font-medium">{value}</div>
-          </div>
-        ))}
-      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-medium">Route</h2>
+          <DeliveryRouteMap pickup={delivery.pickup} destination={delivery.destination} />
+        </div>
 
-      <div className="space-y-2">
-        <h2 className="text-lg font-medium">Route</h2>
-        <DeliveryRouteMap pickup={delivery.pickup} destination={delivery.destination} />
+        <div className="space-y-2">
+          <h2 className="text-lg font-medium">Details</h2>
+          <div className="divide-y rounded-lg border">
+            <div className="space-y-1 p-4">
+              <p className="text-xs text-muted-foreground">Customer</p>
+              <p className="text-sm font-medium">{delivery.customer}</p>
+            </div>
+
+            <div className="flex items-center gap-4 p-4">
+              <div className="flex-1 space-y-1">
+                <p className="text-xs text-muted-foreground">Pickup</p>
+                <p className="text-sm font-medium">{delivery.pickup.label}</p>
+              </div>
+              <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+              <div className="flex-1 space-y-1">
+                <p className="text-xs text-muted-foreground">Destination</p>
+                <p className="text-sm font-medium">{delivery.destination.label}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 p-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Priority</p>
+                <StatusBadge
+                  label={priorityConfig.label}
+                  tone={priorityConfig.tone}
+                  icon={priorityConfig.icon}
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Status</p>
+                <StatusBadge
+                  label={statusConfig.label}
+                  tone={statusConfig.tone}
+                  icon={statusConfig.icon}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 p-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Driver</p>
+                <div className="text-sm font-medium">
+                  {driver ? (
+                    <Link to={`/drivers/${driver.id}`} className="hover:underline">
+                      {driver.name}
+                    </Link>
+                  ) : (
+                    'Unassigned'
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Vehicle</p>
+                <div className="text-sm font-medium">
+                  {vehicle ? (
+                    <Link to={`/vehicles/${vehicle.id}`} className="hover:underline">
+                      {vehicle.name}
+                    </Link>
+                  ) : (
+                    '—'
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1 p-4">
+              <p className="text-xs text-muted-foreground">Scheduled delivery</p>
+              <p className="text-sm font-medium">{formatDateOnly(delivery.scheduledTime)}</p>
+            </div>
+
+            <div className="space-y-1 p-4">
+              <p className="text-xs text-muted-foreground">Notes</p>
+              <p className="text-sm font-medium">{delivery.notes || '—'}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
         <h2 className="text-lg font-medium">Activity</h2>
-        <ActivityTimeline events={activityData?.data ?? []} />
+        <ActivityTimeline events={activityData?.data ?? []} readOnly />
       </div>
 
       <AssignDeliveryDialog

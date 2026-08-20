@@ -122,7 +122,7 @@ export function DeliveryRouteMap({ pickup, destination }: DeliveryRouteMapProps)
       ref={containerRef}
       role="img"
       aria-label={`Map showing the route from ${pickup.label} to ${destination.label}`}
-      className="h-64 w-full overflow-hidden rounded-lg border"
+      className="min-h-64 w-full flex-1 overflow-hidden rounded-lg border"
     />
   )
 }

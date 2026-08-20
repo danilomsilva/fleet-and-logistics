@@ -12,7 +12,6 @@ export interface DeliveriesQueryParams {
   driverId?: string
   vehicleId?: string
   date?: string
-  destination?: string
   q?: string
 }
 

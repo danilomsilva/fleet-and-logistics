@@ -45,14 +45,25 @@ export function AssignDeliveryDialog({
   })
   const assignMutation = useAssignDelivery()
 
-  const driverItems = Object.fromEntries(
-    (driversData?.data ?? []).map((driver) => [driver.id, driver.name]),
+  // Every driver already has a vehicle assigned to them — picking a driver is
+  // enough, their own vehicle comes along automatically. Only drivers whose
+  // own vehicle is available and of the right type are selectable. The
+  // vehicle id is captured at selection time (not re-derived at confirm),
+  // so it can't be affected by the driver/vehicle queries refetching while
+  // the dialog is open.
+  const eligibleVehicleIds = new Set((vehiclesData?.data ?? []).map((v) => v.id))
+  const eligibleDrivers = (driversData?.data ?? []).filter(
+    (d) => d.assignedVehicleId && eligibleVehicleIds.has(d.assignedVehicleId),
   )
-  const vehicleItems = Object.fromEntries(
-    (vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name]),
-  )
+  const driverItems = Object.fromEntries(eligibleDrivers.map((driver) => [driver.id, driver.name]))
+
+  function handleSelectDriver(id: string) {
+    setDriverId(id)
+    setVehicleId(eligibleDrivers.find((d) => d.id === id)?.assignedVehicleId ?? '')
+  }
 
   function handleConfirm() {
+    if (!driverId || !vehicleId) return
     assignMutation.mutate(
       { deliveryId, driverId, vehicleId },
       {
@@ -73,47 +84,27 @@ export function AssignDeliveryDialog({
         <DialogHeader>
           <DialogTitle>Assign delivery</DialogTitle>
           <DialogDescription>
-            Choose an available driver and a {requiredVehicleType} vehicle.
+            Choose a driver — their assigned {requiredVehicleType} vehicle will be used.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          {driversData && driversData.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No available drivers right now.</p>
+          {driversData && vehiclesData && eligibleDrivers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No drivers with an available {requiredVehicleType} vehicle right now.
+            </p>
           ) : (
             <Select
               items={driverItems}
               value={driverId}
-              onValueChange={(v) => setDriverId(v ?? '')}
+              onValueChange={(v) => v && handleSelectDriver(v)}
             >
               <SelectTrigger className="w-full" aria-label="Driver">
                 <SelectValue placeholder="Select driver" />
               </SelectTrigger>
               <SelectContent>
-                {driversData?.data.map((driver) => (
+                {eligibleDrivers.map((driver) => (
                   <SelectItem key={driver.id} value={driver.id}>
                     {driver.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          {vehiclesData && vehiclesData.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No available {requiredVehicleType} vehicles right now.
-            </p>
-          ) : (
-            <Select
-              items={vehicleItems}
-              value={vehicleId}
-              onValueChange={(v) => setVehicleId(v ?? '')}
-            >
-              <SelectTrigger className="w-full" aria-label="Vehicle">
-                <SelectValue placeholder="Select vehicle" />
-              </SelectTrigger>
-              <SelectContent>
-                {vehiclesData?.data.map((vehicle) => (
-                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.name}
                   </SelectItem>
                 ))}
               </SelectContent>

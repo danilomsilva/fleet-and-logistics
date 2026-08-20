@@ -40,8 +40,8 @@ export function useUpdateDeliveryStatus() {
     onSettled: (_data, _error, { id }) => {
       queryClient.invalidateQueries({ queryKey: deliveryKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: deliveryKeys.lists() })
-      // 'delivered'/'cancelled' also frees the driver/vehicle back to
-      // 'available' server-side — see mock-api/handlers/deliveries.ts.
+      // 'delivered' also frees the driver/vehicle back to 'available'
+      // server-side — see mock-api/handlers/deliveries.ts.
       queryClient.invalidateQueries({ queryKey: driverKeys.all })
       queryClient.invalidateQueries({ queryKey: vehicleKeys.all })
     },
