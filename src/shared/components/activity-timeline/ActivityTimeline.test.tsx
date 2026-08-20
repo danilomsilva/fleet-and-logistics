@@ -22,10 +22,10 @@ const EVENTS: ActivityEvent[] = [
   },
 ]
 
-function renderTimeline(events: ActivityEvent[] = EVENTS) {
+function renderTimeline(events: ActivityEvent[] = EVENTS, readOnly = false) {
   return render(
     <MemoryRouter>
-      <ActivityTimeline events={events} />
+      <ActivityTimeline events={events} readOnly={readOnly} />
     </MemoryRouter>,
   )
 }
@@ -47,6 +47,13 @@ describe('ActivityTimeline', () => {
       'href',
       '/vehicles/VH-001',
     )
+  })
+
+  it('renders plain, non-interactive rows when readOnly (no link, no href)', () => {
+    renderTimeline(EVENTS, true)
+    expect(screen.getByText('Delivery assigned to driver and vehicle').closest('a')).toBeNull()
+    expect(screen.getByText('Vehicle entered service').closest('a')).toBeNull()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
   it('renders an empty list when there are no events', () => {

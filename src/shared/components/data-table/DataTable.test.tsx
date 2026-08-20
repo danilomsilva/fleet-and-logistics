@@ -349,6 +349,20 @@ describe('DataTable loading/error/empty', () => {
     expect(container.querySelectorAll('tbody tr[aria-hidden="true"]').length).toBeGreaterThan(0)
   })
 
+  it('renders one skeleton row per page-size row, matching the real page once loaded', () => {
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        data={VEHICLES}
+        getRowId={(v) => v.id}
+        pagination={{ pageIndex: 0, pageSize: 10 }}
+        onPaginationChange={() => {}}
+        isLoading
+      />,
+    )
+    expect(container.querySelectorAll('tbody tr[aria-hidden="true"]')).toHaveLength(10)
+  })
+
   it('renders ErrorState and calls onRetry when isError', async () => {
     const user = userEvent.setup()
     const onRetry = vi.fn()

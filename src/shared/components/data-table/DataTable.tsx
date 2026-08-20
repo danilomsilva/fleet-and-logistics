@@ -94,7 +94,7 @@ const ARIA_SORT = {
   desc: 'descending',
 } as const
 
-const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 25 }
+const DEFAULT_PAGINATION: PaginationState = { pageIndex: 0, pageSize: 10 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
 const PAGE_SIZE_ITEMS = Object.fromEntries(PAGE_SIZE_OPTIONS.map((size) => [size, String(size)]))
@@ -293,7 +293,10 @@ export function DataTable<TData extends RowData>({
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRowSkeleton columns={table.getVisibleFlatColumns().length} />
+            <TableRowSkeleton
+              columns={table.getVisibleFlatColumns().length}
+              rows={pagination.pageSize}
+            />
           ) : isError ? (
             <TableRow>
               <TableCell colSpan={table.getVisibleFlatColumns().length}>
