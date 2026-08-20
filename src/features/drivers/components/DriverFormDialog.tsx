@@ -29,6 +29,8 @@ const STATUS_ITEMS: Record<string, string> = Object.fromEntries(
   driverStatusSchema.options.map((status) => [status, DRIVER_STATUS_CONFIG[status].label]),
 )
 
+const UNASSIGNED = 'unassigned'
+
 export interface DriverFormDialogProps {
   /** Called with `false` to close. The caller should stop rendering this
    * component in response, so a fresh instance (and fresh form state) mounts
@@ -47,17 +49,28 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
 
   const [name, setName] = useState(driver?.name ?? '')
   const [status, setStatus] = useState<string>(driver?.status ?? 'available')
-  const [assignedVehicleId, setAssignedVehicleId] = useState(driver?.assignedVehicleId ?? '')
-
-  const vehicleItems: Record<string, string> = Object.fromEntries(
-    (vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name]),
+  const [assignedVehicleId, setAssignedVehicleId] = useState(
+    driver?.assignedVehicleId ?? UNASSIGNED,
   )
+
+  // A vehicle can only ever be paired with one driver — only offer vehicles
+  // that don't already have one, plus this driver's own current vehicle (if
+  // editing), so their existing pairing doesn't just vanish from the list.
+  // A vehicle isn't required, though — a driver can be added before one is
+  // free and assigned later by editing them.
+  const eligibleVehicles = (vehiclesData?.data ?? []).filter(
+    (vehicle) => !vehicle.driverId || vehicle.driverId === driver?.id,
+  )
+  const vehicleItems: Record<string, string> = {
+    [UNASSIGNED]: 'Unassigned',
+    ...Object.fromEntries(eligibleVehicles.map((vehicle) => [vehicle.id, vehicle.name])),
+  }
 
   function handleSubmit() {
     const parsed = driverInputSchema.safeParse({
       name,
       status,
-      assignedVehicleId: assignedVehicleId || null,
+      assignedVehicleId: assignedVehicleId === UNASSIGNED ? null : assignedVehicleId,
     })
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? 'Please check the form.')
@@ -97,18 +110,24 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Status</span>
-            <Select items={STATUS_ITEMS} value={status} onValueChange={(v) => v && setStatus(v)}>
-              <SelectTrigger className="w-full" aria-label="Driver status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(STATUS_ITEMS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isEdit ? (
+              <Select items={STATUS_ITEMS} value={status} onValueChange={(v) => v && setStatus(v)}>
+                <SelectTrigger className="w-full" aria-label="Driver status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STATUS_ITEMS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                New drivers start as Available. You can change this after adding them.
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Assigned vehicle</span>
@@ -118,7 +137,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
               onValueChange={(v) => v && setAssignedVehicleId(v)}
             >
               <SelectTrigger className="w-full" aria-label="Assigned vehicle">
-                <SelectValue placeholder="Select a vehicle" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(vehicleItems).map(([value, label]) => (
@@ -133,7 +152,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
-          <Button disabled={isPending || !name || !assignedVehicleId} onClick={handleSubmit}>
+          <Button disabled={isPending || !name} onClick={handleSubmit}>
             {isEdit ? 'Save changes' : 'Add Driver'}
           </Button>
         </DialogFooter>

@@ -134,5 +134,5 @@ export function VehicleActivityTab({ vehicle }: { vehicle: Vehicle }) {
     return <EmptyState title="No activity yet" />
   }
 
-  return <ActivityTimeline events={data?.data ?? []} />
+  return <ActivityTimeline events={data?.data ?? []} readOnly />
 }

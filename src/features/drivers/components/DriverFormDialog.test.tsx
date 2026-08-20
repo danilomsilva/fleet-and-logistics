@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { axe } from 'vitest-axe'
 import { db } from '@/mock-api/db'
@@ -26,6 +26,22 @@ describe('DriverFormDialog', () => {
     renderDialog(target)
     expect(screen.getByRole('heading', { name: `Edit ${target.name}` })).toBeInTheDocument()
     expect(screen.getByLabelText('Name')).toHaveValue(target.name)
+  })
+
+  it('locks status to Available in create mode, but lets it be changed when editing', () => {
+    renderDialog()
+    expect(screen.getByText(/New drivers start as Available/)).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Driver status' })).not.toBeInTheDocument()
+
+    const target = db.drivers[0]
+    renderDialog(target)
+    expect(screen.getByRole('combobox', { name: 'Driver status' })).toBeInTheDocument()
+  })
+
+  it('does not require a vehicle to be assigned', () => {
+    renderDialog()
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'New Driver' } })
+    expect(screen.getByRole('button', { name: 'Add Driver' })).toBeEnabled()
   })
 
   it('has no detectable accessibility violations', async () => {

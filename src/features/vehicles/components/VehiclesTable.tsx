@@ -15,7 +15,7 @@ import { vehiclesFiltersSchema } from '../vehicles-filters'
 export function VehiclesTable() {
   const { filters } = useUrlFilters(vehiclesFiltersSchema)
   const [sorting, setSorting] = useState<SortingState>([])
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined

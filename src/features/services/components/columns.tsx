@@ -8,8 +8,6 @@ import { SERVICE_PRIORITY_CONFIG, SERVICE_STATUS_CONFIG } from '../service-statu
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
 })
 function formatDate(value: string | null) {
   return value ? dateFormatter.format(new Date(value)) : '—'
@@ -17,7 +15,9 @@ function formatDate(value: string | null) {
 
 const helper = createColumnHelper<typeof dataTableFeatures, ServiceRecord>()
 
-export function createServiceColumns(vehicleNameById: Map<string, string>) {
+export function createServiceColumns(
+  vehicleById: Map<string, { name: string; registration: string }>,
+) {
   return [
     helper.accessor('id', {
       header: 'Record ID',
@@ -33,10 +33,14 @@ export function createServiceColumns(vehicleNameById: Map<string, string>) {
         const id = info.getValue()
         return (
           <Link to={`/vehicles/${id}`} className="hover:underline">
-            {vehicleNameById.get(id) ?? id}
+            {vehicleById.get(id)?.name ?? id}
           </Link>
         )
       },
+    }),
+    helper.accessor((row) => vehicleById.get(row.vehicleId)?.registration ?? '—', {
+      id: 'registration',
+      header: 'Registration',
     }),
     helper.accessor('serviceType', {
       header: 'Type',
@@ -61,7 +65,7 @@ export function createServiceColumns(vehicleNameById: Map<string, string>) {
       cell: (info) => formatDate(info.getValue()),
     }),
     helper.accessor('completionDate', {
-      header: 'Completed',
+      header: 'Completed in',
       cell: (info) => formatDate(info.getValue()),
     }),
   ]

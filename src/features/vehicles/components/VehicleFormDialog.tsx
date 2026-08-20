@@ -62,9 +62,15 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
   const [driverId, setDriverId] = useState(vehicle?.driverId ?? UNASSIGNED)
   const [mileage, setMileage] = useState(String(vehicle?.mileage ?? 0))
 
+  // A driver can only ever be paired with one vehicle — only offer drivers
+  // that don't already have one, plus this vehicle's own current driver (if
+  // editing), so their existing pairing doesn't just vanish from the list.
+  const eligibleDrivers = (driversData?.data ?? []).filter(
+    (driver) => !driver.assignedVehicleId || driver.assignedVehicleId === vehicle?.id,
+  )
   const driverItems: Record<string, string> = {
     [UNASSIGNED]: 'Unassigned',
-    ...Object.fromEntries((driversData?.data ?? []).map((driver) => [driver.id, driver.name])),
+    ...Object.fromEntries(eligibleDrivers.map((driver) => [driver.id, driver.name])),
   }
 
   function handleSubmit() {
@@ -118,6 +124,7 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
             </label>
             <Input
               id="vehicle-registration"
+              placeholder="181-D-12345"
               value={registration}
               onChange={(e) => setRegistration(e.target.value)}
             />
@@ -156,18 +163,28 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Driver</span>
-            <Select items={driverItems} value={driverId} onValueChange={(v) => v && setDriverId(v)}>
-              <SelectTrigger className="w-full" aria-label="Assigned driver">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(driverItems).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {driversData && eligibleDrivers.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No available drivers right now — every driver already has a vehicle.
+              </p>
+            ) : (
+              <Select
+                items={driverItems}
+                value={driverId}
+                onValueChange={(v) => v && setDriverId(v)}
+              >
+                <SelectTrigger className="w-full" aria-label="Assigned driver">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(driverItems).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="space-y-1">
             <label htmlFor="vehicle-mileage" className="text-sm font-medium">

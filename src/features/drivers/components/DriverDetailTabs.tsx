@@ -112,5 +112,5 @@ export function DriverActivityTab({ driver }: { driver: Driver }) {
     return <EmptyState title="No activity yet" />
   }
 
-  return <ActivityTimeline events={data?.data ?? []} />
+  return <ActivityTimeline events={data?.data ?? []} readOnly />
 }

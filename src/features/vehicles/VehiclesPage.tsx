@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FilterDropdown } from '@/shared/components/filter-dropdown/FilterDropdown'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
 import { vehicleStatusSchema, vehicleTypeSchema } from '@/mock-api/schemas/vehicle'
 import { VEHICLE_STATUS_CONFIG } from './vehicle-status-config'
@@ -48,48 +42,22 @@ export function VehiclesPage() {
               className="w-56"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Status</span>
-            <Select
-              items={STATUS_ITEMS}
-              value={filters.status || 'all'}
-              onValueChange={(value) =>
-                setFilters({ status: !value || value === 'all' ? '' : value })
-              }
-            >
-              <SelectTrigger className="w-40" aria-label="Filter by status">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(STATUS_ITEMS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Type</span>
-            <Select
-              items={TYPE_ITEMS}
-              value={filters.type || 'all'}
-              onValueChange={(value) =>
-                setFilters({ type: !value || value === 'all' ? '' : value })
-              }
-            >
-              <SelectTrigger className="w-40" aria-label="Filter by type">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(TYPE_ITEMS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <FilterDropdown
+            groups={[
+              {
+                label: 'Status',
+                value: filters.status || 'all',
+                onValueChange: (value) => setFilters({ status: value === 'all' ? '' : value }),
+                items: STATUS_ITEMS,
+              },
+              {
+                label: 'Type',
+                value: filters.type || 'all',
+                onValueChange: (value) => setFilters({ type: value === 'all' ? '' : value }),
+                items: TYPE_ITEMS,
+              },
+            ]}
+          />
           <Button onClick={() => setAddOpen(true)}>
             <Plus aria-hidden="true" />
             Add Vehicle

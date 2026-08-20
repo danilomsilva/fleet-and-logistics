@@ -160,7 +160,7 @@ export function ServiceDetailPage() {
 
       <div className="space-y-2">
         <h2 className="text-lg font-medium">Activity</h2>
-        <ActivityTimeline events={activityData?.data ?? []} />
+        <ActivityTimeline events={activityData?.data ?? []} readOnly />
       </div>
 
       {editOpen && <ServiceFormDialog onOpenChange={setEditOpen} record={record} />}

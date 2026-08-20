@@ -6,7 +6,7 @@ import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { dataTableFeatures } from '@/shared/components/data-table/data-table-features'
 import { getEntityPath } from '@/shared/lib/entity-routes'
-import { ALERT_PRIORITY_CONFIG, ALERT_STATUS_CONFIG } from '../alert-status-config'
+import { ALERT_STATUS_CONFIG } from '../alert-status-config'
 import type { useUpdateAlertStatus } from '../hooks/useUpdateAlertStatus'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -41,13 +41,6 @@ export function createAlertColumns(updateStatus: ReturnType<typeof useUpdateAler
     helper.accessor('type', {
       header: 'Type',
       cell: (info) => <span className="capitalize">{info.getValue().replace(/_/g, ' ')}</span>,
-    }),
-    helper.accessor('priority', {
-      header: 'Priority',
-      cell: (info) => {
-        const config = ALERT_PRIORITY_CONFIG[info.getValue()]
-        return <StatusBadge label={config.label} tone={config.tone} icon={config.icon} />
-      },
     }),
     helper.accessor('status', {
       header: 'Status',

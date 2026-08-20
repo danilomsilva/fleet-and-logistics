@@ -14,7 +14,7 @@ export interface AlertsTableProps {
 export function AlertsTable({ category = '' }: AlertsTableProps) {
   const { filters } = useUrlFilters(alertsFiltersSchema)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'timestamp', desc: true }])
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
   const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined
 
@@ -24,7 +24,6 @@ export function AlertsTable({ category = '' }: AlertsTableProps) {
     sort,
     status: filters.status || undefined,
     type: filters.type || undefined,
-    priority: filters.priority || undefined,
     category,
     q: filters.q || undefined,
   })

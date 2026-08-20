@@ -9,7 +9,6 @@ export interface AlertsQueryParams {
   sort?: string
   status?: string
   type?: string
-  priority?: string
   category?: string
   q?: string
 }

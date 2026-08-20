@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FilterDropdown } from '@/shared/components/filter-dropdown/FilterDropdown'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { servicePrioritySchema, serviceStatusSchema } from '@/mock-api/schemas/service'
@@ -57,69 +51,28 @@ export function ServicesPage() {
               className="w-56"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Status</span>
-            <Select
-              items={STATUS_ITEMS}
-              value={filters.status || 'all'}
-              onValueChange={(value) =>
-                setFilters({ status: !value || value === 'all' ? '' : value })
-              }
-            >
-              <SelectTrigger className="w-40" aria-label="Filter by status">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(STATUS_ITEMS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Priority</span>
-            <Select
-              items={PRIORITY_ITEMS}
-              value={filters.priority || 'all'}
-              onValueChange={(value) =>
-                setFilters({ priority: !value || value === 'all' ? '' : value })
-              }
-            >
-              <SelectTrigger className="w-40" aria-label="Filter by priority">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRIORITY_ITEMS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Vehicle</span>
-            <Select
-              items={vehicleItems}
-              value={filters.vehicleId || 'all'}
-              onValueChange={(value) =>
-                setFilters({ vehicleId: !value || value === 'all' ? '' : value })
-              }
-            >
-              <SelectTrigger className="w-40" aria-label="Filter by vehicle">
-                <SelectValue placeholder="Vehicle" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(vehicleItems).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <FilterDropdown
+            groups={[
+              {
+                label: 'Status',
+                value: filters.status || 'all',
+                onValueChange: (value) => setFilters({ status: value === 'all' ? '' : value }),
+                items: STATUS_ITEMS,
+              },
+              {
+                label: 'Priority',
+                value: filters.priority || 'all',
+                onValueChange: (value) => setFilters({ priority: value === 'all' ? '' : value }),
+                items: PRIORITY_ITEMS,
+              },
+              {
+                label: 'Vehicle',
+                value: filters.vehicleId || 'all',
+                onValueChange: (value) => setFilters({ vehicleId: value === 'all' ? '' : value }),
+                items: vehicleItems,
+              },
+            ]}
+          />
           <Button onClick={() => setAddOpen(true)}>
             <Plus aria-hidden="true" />
             Add Service

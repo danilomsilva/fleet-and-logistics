@@ -10,7 +10,7 @@ import { serviceFiltersSchema } from '../services-filters'
 export function ServicesTable() {
   const { filters } = useUrlFilters(serviceFiltersSchema)
   const [sorting, setSorting] = useState<SortingState>([])
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
   const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined
 
@@ -26,13 +26,14 @@ export function ServicesTable() {
 
   const { data: vehiclesData } = useVehicles({ pageSize: 200 })
 
-  const vehicleNameById = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const vehicle of vehiclesData?.data ?? []) map.set(vehicle.id, vehicle.name)
+  const vehicleById = useMemo(() => {
+    const map = new Map<string, { name: string; registration: string }>()
+    for (const vehicle of vehiclesData?.data ?? [])
+      map.set(vehicle.id, { name: vehicle.name, registration: vehicle.registration })
     return map
   }, [vehiclesData])
 
-  const columns = useMemo(() => createServiceColumns(vehicleNameById), [vehicleNameById])
+  const columns = useMemo(() => createServiceColumns(vehicleById), [vehicleById])
 
   return (
     <div className="space-y-4">
