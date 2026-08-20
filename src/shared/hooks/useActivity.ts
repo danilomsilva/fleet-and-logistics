@@ -18,7 +18,7 @@ async function fetchActivity(
   return res.json()
 }
 
-/** Powers ActivityTimeline on Vehicle/Driver/Delivery/Maintenance detail pages and the Dashboard. */
+/** Powers ActivityTimeline on Vehicle/Driver/Delivery/Service detail pages and the Dashboard. */
 export function useActivity(params: ActivityQueryParams) {
   return useQuery({
     queryKey: ['activity', params],

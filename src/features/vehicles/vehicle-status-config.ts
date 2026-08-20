@@ -1,6 +1,6 @@
 import { AlertTriangle, Car, CircleCheck, Clock, Wrench } from 'lucide-react'
 import type { StatusTone } from '@/shared/components/status-badge/StatusBadge'
-import type { VehicleMaintenanceStatus, VehicleStatus } from '@/mock-api/schemas/vehicle'
+import type { VehicleServiceStatus, VehicleStatus } from '@/mock-api/schemas/vehicle'
 
 export const VEHICLE_STATUS_CONFIG: Record<
   VehicleStatus,
@@ -8,12 +8,12 @@ export const VEHICLE_STATUS_CONFIG: Record<
 > = {
   available: { label: 'Available', tone: 'success', icon: CircleCheck },
   in_use: { label: 'In use', tone: 'info', icon: Car },
-  maintenance: { label: 'Service', tone: 'warning', icon: Wrench },
+  service: { label: 'Service', tone: 'warning', icon: Wrench },
   broken: { label: 'Broken', tone: 'neutral', icon: AlertTriangle },
 }
 
-export const VEHICLE_MAINTENANCE_STATUS_CONFIG: Record<
-  VehicleMaintenanceStatus,
+export const VEHICLE_SERVICE_STATUS_CONFIG: Record<
+  VehicleServiceStatus,
   { label: string; tone: StatusTone; icon: typeof CircleCheck }
 > = {
   up_to_date: { label: 'OK', tone: 'success', icon: CircleCheck },

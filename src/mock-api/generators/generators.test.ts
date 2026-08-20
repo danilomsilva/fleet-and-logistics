@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker'
 import { generateVehicles } from './vehicles'
 import { generateDrivers } from './drivers'
 import { generateDeliveries } from './deliveries'
-import { generateMaintenanceRecords } from './maintenance'
+import { generateServiceRecords } from './services'
 import { generateAlerts } from './alerts'
 import { generateActivityEvents } from './activity'
 import { vehicleStatusSchema } from '../schemas/vehicle'
@@ -80,10 +80,10 @@ describe('generateDeliveries', () => {
   })
 })
 
-describe('generateMaintenanceRecords', () => {
+describe('generateServiceRecords', () => {
   it('only references known vehicles and nulls completionDate unless completed', () => {
     const vehicles = generateVehicles(5)
-    const records = generateMaintenanceRecords(20, { vehicles })
+    const records = generateServiceRecords(20, { vehicles })
 
     expect(records).toHaveLength(20)
     for (const record of records) {
@@ -102,12 +102,12 @@ describe('generateAlerts', () => {
     const vehicles = generateVehicles(5)
     const drivers = generateDrivers(5)
     const deliveries = generateDeliveries(10, { vehicles, drivers })
-    const maintenanceRecords = generateMaintenanceRecords(5, { vehicles })
-    const alerts = generateAlerts(20, { vehicles, drivers, deliveries, maintenanceRecords })
+    const serviceRecords = generateServiceRecords(5, { vehicles })
+    const alerts = generateAlerts(20, { vehicles, drivers, deliveries, serviceRecords })
 
     expect(alerts).toHaveLength(20)
     const expectedKind = {
-      vehicle_service_due: 'maintenance',
+      vehicle_service_due: 'service',
       delivery_delayed: 'delivery',
       assignment_conflict: 'delivery',
       driver_unavailable: 'driver',
@@ -125,13 +125,13 @@ describe('generateActivityEvents', () => {
     const vehicles = generateVehicles(5)
     const drivers = generateDrivers(5)
     const deliveries = generateDeliveries(10, { vehicles, drivers })
-    const maintenanceRecords = generateMaintenanceRecords(5, { vehicles })
-    const alerts = generateAlerts(5, { vehicles, drivers, deliveries, maintenanceRecords })
+    const serviceRecords = generateServiceRecords(5, { vehicles })
+    const alerts = generateAlerts(5, { vehicles, drivers, deliveries, serviceRecords })
     const activity = generateActivityEvents(30, {
       vehicles,
       drivers,
       deliveries,
-      maintenanceRecords,
+      serviceRecords,
       alerts,
     })
 

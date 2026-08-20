@@ -3,21 +3,21 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { axe } from 'vitest-axe'
-import { MaintenanceTable } from './MaintenanceTable'
+import { ServicesTable } from './ServicesTable'
 
 function renderTable() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <MaintenanceTable />
+        <ServicesTable />
       </MemoryRouter>
     </QueryClientProvider>,
   )
 }
 
-describe('MaintenanceTable', () => {
-  it('loads and renders maintenance rows', async () => {
+describe('ServicesTable', () => {
+  it('loads and renders service rows', async () => {
     renderTable()
     await waitFor(() => expect(screen.getAllByRole('row').length).toBeGreaterThan(1))
   })

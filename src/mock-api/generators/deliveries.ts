@@ -22,7 +22,7 @@ function pickVehicleFor(driver: Driver, vehicles: Vehicle[]): Vehicle {
     : undefined
   if (assigned) return assigned
 
-  const pool = vehicles.filter((v) => v.status !== 'maintenance' && v.status !== 'broken')
+  const pool = vehicles.filter((v) => v.status !== 'service' && v.status !== 'broken')
   return faker.helpers.arrayElement(pool.length > 0 ? pool : vehicles)
 }
 

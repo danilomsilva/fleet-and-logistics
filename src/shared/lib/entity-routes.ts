@@ -14,8 +14,8 @@ export function getEntityPath(ref: EntityRef): string {
       return `/drivers/${ref.id}`
     case 'delivery':
       return `/deliveries/${ref.id}`
-    case 'maintenance':
-      return `/maintenance/${ref.id}`
+    case 'service':
+      return `/services/${ref.id}`
     case 'alert':
       return '/alerts'
   }

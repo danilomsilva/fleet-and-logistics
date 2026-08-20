@@ -17,7 +17,7 @@ function renderDialog(vehicle?: (typeof db.vehicles)[number]) {
 describe('VehicleFormDialog', () => {
   it('renders empty fields in create mode', () => {
     renderDialog()
-    expect(screen.getByRole('heading', { name: 'Add vehicle' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Add Vehicle' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name')).toHaveValue('')
   })
 

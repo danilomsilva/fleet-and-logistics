@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { vehicleKeys } from './query-keys'
 import { driverKeys } from '@/features/drivers/hooks/query-keys'
-import { maintenanceKeys } from '@/features/maintenance/hooks/query-keys'
+import { serviceKeys } from '@/features/services/hooks/query-keys'
 
 async function deleteVehicle(id: string): Promise<void> {
   const res = await fetch(`/api/vehicles/${id}`, { method: 'DELETE' })
@@ -16,7 +16,7 @@ export function useDeleteVehicle() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() })
       queryClient.invalidateQueries({ queryKey: driverKeys.all })
-      queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
+      queryClient.invalidateQueries({ queryKey: serviceKeys.all })
     },
   })
 }

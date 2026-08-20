@@ -2,7 +2,7 @@
 
 ## Context
 
-`1-product-specification.md` defines FleetOS, a portfolio-grade fleet/logistics ops dashboard (Dashboard, Dispatch, Deliveries, Vehicles, Drivers, Maintenance, Alerts). At the time this plan was first written, the repo was empty (just `.git` and the spec) — see "Detailed substeps" below for current progress. The goal per spec §14 is to demonstrate sophisticated frontend engineering — complex data/state management, reusable components, accessibility, performance, and testing — not to build every conceivable fleet-management feature. This plan defines the stack, architecture, and a build order that produces full vertical slices (not layout shells followed by a data-wiring pass), so each milestone is a working, tested piece of the product.
+`1-product-specification.md` defines FleetOS, a portfolio-grade fleet/logistics ops dashboard (Dashboard, Dispatch, Deliveries, Vehicles, Drivers, Services, Alerts). At the time this plan was first written, the repo was empty (just `.git` and the spec) — see "Detailed substeps" below for current progress. The goal per spec §14 is to demonstrate sophisticated frontend engineering — complex data/state management, reusable components, accessibility, performance, and testing — not to build every conceivable fleet-management feature. This plan defines the stack, architecture, and a build order that produces full vertical slices (not layout shells followed by a data-wiring pass), so each milestone is a working, tested piece of the product.
 
 **Confirmed stack decisions** (from user):
 - **Build tool / routing:** Vite + React Router
@@ -19,7 +19,7 @@
 | Server-state / data fetching | TanStack Query | Caching, refetching, pagination, mutations, loading/error states — matches spec §13 exactly |
 | Mock API | MSW (Mock Service Worker) | Intercepts real `fetch` calls at the network level so the app genuinely "talks to an API" (real request/response cycle, not just imported JS objects) — satisfies spec §1/§13 intent directly |
 | Client/UI state | Zustand (small, scoped) | Only for sidebar collapse state and the Dispatch assignment wizard step — everything else stays local or in the URL |
-| Tables | TanStack Table (headless) + shadcn `<Table>` | One reusable `DataTable` built once, reused for Vehicles/Drivers/Deliveries/Maintenance |
+| Tables | TanStack Table (headless) + shadcn `<Table>` | One reusable `DataTable` built once, reused for Vehicles/Drivers/Deliveries/Services |
 | Forms | Zod (validation only) | Every "form" that shipped (assignment wizard, status transitions) turned out to be selection from existing data, not free-text input, so React Hook Form was never actually needed and was removed post-Milestone-12 as unused weight. Zod still validates mock API payloads and URL filter params. |
 | Charts | Recharts | Delivery-by-status chart on Dashboard |
 | Map | MapLibre GL JS (raw, thin React wrapper) | Vehicles/drivers/delivery markers, no billing/API-key setup |
@@ -47,7 +47,7 @@ src/
     drivers/
     deliveries/
     dispatch/
-    maintenance/
+    services/
     alerts/
     # each feature/: components/, hooks/ (TanStack Query hooks), types.ts, routes.tsx
   shared/
@@ -104,19 +104,19 @@ e2e/
 - **EmptyState / ErrorState (with retry)** — shared primitives every screen's query hook renders through.
 - **Skeletons** — table-row skeleton, card skeleton, detail-page skeleton.
 - **ConfirmDialog** — Radix AlertDialog wrapper for destructive/important actions.
-- **ActivityTimeline** — chronological event list with entity-navigation on click; reused by Vehicle/Driver/Delivery/Maintenance detail pages and Dashboard "Recent activity."
-- **useUrlFilters** — zod-schema-driven hook syncing filter state to `useSearchParams`; used by Deliveries (required by spec §6) and reused for Vehicles/Drivers/Maintenance/Alerts filters for consistency.
+- **ActivityTimeline** — chronological event list with entity-navigation on click; reused by Vehicle/Driver/Delivery/Service detail pages and Dashboard "Recent activity."
+- **useUrlFilters** — zod-schema-driven hook syncing filter state to `useSearchParams`; used by Deliveries (required by spec §6) and reused for Vehicles/Drivers/Services/Alerts filters for consistency.
 
 ## Build order (each milestone is a full vertical slice: types → mock handlers → query hooks → UI → tests)
 
 1. **Scaffolding** — Vite+TS+React Router init, ESLint/Prettier, Tailwind + shadcn init, path aliases, Vitest config + RTL/jest-axe setup, Playwright config, MSW init (browser worker + Node server for tests).
-2. **App shell & mock data foundation** — AppShell (sidebar/topbar, collapses to drawer per spec §11), route tree with placeholder pages, TanStack Query client, zod schemas + faker generators + in-memory db for all entities (vehicles, drivers, deliveries, maintenance, alerts, activity events), base MSW handlers.
+2. **App shell & mock data foundation** — AppShell (sidebar/topbar, collapses to drawer per spec §11), route tree with placeholder pages, TanStack Query client, zod schemas + faker generators + in-memory db for all entities (vehicles, drivers, deliveries, services, alerts, activity events), base MSW handlers.
 3. **Shared component library** — DataTable, StatusBadge, KPICard, Empty/ErrorState, Skeletons, ConfirmDialog, ActivityTimeline, useUrlFilters. Component tests + axe checks here since everything downstream depends on these being accessible.
-4. **Vehicles** — table (search/sort/filter/pagination/column visibility/selection/bulk actions) + detail page (Overview/Maintenance/Delivery history/Activity tabs). First full slice validating the DataTable contract.
+4. **Vehicles** — table (search/sort/filter/pagination/column visibility/selection/bulk actions) + detail page (Overview/Service/Delivery history/Activity tabs). First full slice validating the DataTable contract.
 5. **Drivers** — mirrors Vehicles pattern (table + detail with today's deliveries, history, availability, activity).
 6. **Deliveries** — largest screen: full filter set reflected in URL (spec §6 explicit requirement), state-dependent detail actions (Assign/Start/Mark delivered/Report delay) via optimistic mutations, immediate UI feedback + toasts.
 7. **Dashboard** — KPI cards (wired to real aggregate queries over the mock db, not separate fake numbers), Recharts delivery-by-status chart with Today/7d/30d toggle, fleet-status grouping, recent-activity timeline, top alerts widget. Built after Vehicles/Deliveries/Alerts exist so it has real data/links to aggregate and navigate to.
-8. **Maintenance** — table + detail + schedule/start/complete actions.
+8. **Services** — table + detail + schedule/start/complete actions.
 9. **Alerts** — table/list + filter/search + acknowledge/resolve (optimistic per spec §10) + navigation to related entity.
 10. **Dispatch** — MapLibre map (vehicles/drivers/delivery markers with distinct states) + unassigned-deliveries panel + Zustand-backed assignment wizard (select delivery → driver → vehicle → review → confirm) with conflict prevention (disable/flag unavailable drivers/vehicles at the data layer, not just visually).
 11. **Cross-cutting passes**: accessibility sweep (keyboard nav, focus trapping in dialogs/comboboxes, `aria-live` for toasts/status changes, form-error announcements), responsive sweep (card layout fallback for tables on mobile per spec §11, single-column forms), performance check (row virtualization via TanStack Virtual if the Deliveries table dataset is large enough to warrant it).
@@ -146,7 +146,7 @@ Each milestone above is broken into atomic substeps — one install/config/build
 1.15 Add `.gitignore`
 
 **2. App shell & mock data foundation**
-2.1–2.6 Define types/zod schemas: Vehicle, Driver, Delivery, Maintenance record, Alert, Activity event (one entity per step)
+2.1–2.6 Define types/zod schemas: Vehicle, Driver, Delivery, Service record, Alert, Activity event (one entity per step)
 2.7 Seeded faker generators producing the in-memory dataset
 2.8 Wire entity relationships in the in-memory db module
 2.9 MSW bootstrap (browser worker + Node test server)
@@ -167,7 +167,7 @@ Each milestone above is broken into atomic substeps — one install/config/build
 3.9 DataTable: core + sorting · 3.10 pagination · 3.11 column visibility · 3.12 row selection + bulk actions · 3.13 empty/loading/error slots
 
 **4. Vehicles**
-4.1 List/get MSW handlers · 4.2 useVehicles/useVehicle hooks+tests · 4.3 Table columns+DataTable wiring · 4.4 Filters · 4.5 Search · 4.6 Detail page shell+tabs · 4.7–4.10 Overview / Maintenance / Delivery history / Activity tab content (one per step) · 4.11 Tests (incl. axe)
+4.1 List/get MSW handlers · 4.2 useVehicles/useVehicle hooks+tests · 4.3 Table columns+DataTable wiring · 4.4 Filters · 4.5 Search · 4.6 Detail page shell+tabs · 4.7–4.10 Overview / Service / Delivery history / Activity tab content (one per step) · 4.11 Tests (incl. axe)
 
 **5. Drivers** *(mirrors Vehicles)*
 5.1 Handlers · 5.2 Hooks+tests · 5.3 Table · 5.4 Detail shell · 5.5–5.9 each detail tab · 5.10 Tests
@@ -178,7 +178,7 @@ Each milestone above is broken into atomic substeps — one install/config/build
 **7. Dashboard**
 7.1 Aggregate query hooks · 7.2 KPI cards · 7.3 Delivery-status chart+period toggle · 7.4 Fleet-status grouping · 7.5 Recent activity widget · 7.6 Top alerts widget · 7.7 Layout assembly+responsive · 7.8 Tests
 
-**8. Maintenance**
+**8. Services**
 8.1 Handlers (incl. schedule/start/complete) · 8.2 Hooks+tests · 8.3 Table · 8.4 Detail page · 8.5 Actions+ConfirmDialog · 8.6 Tests
 
 **9. Alerts**

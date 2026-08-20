@@ -4,14 +4,14 @@ import { alertPrioritySchema, alertStatusSchema, alertTypeSchema } from '../sche
 import type { EntityRef } from '../schemas/common'
 import type { Delivery } from '../schemas/delivery'
 import type { Driver } from '../schemas/driver'
-import type { MaintenanceRecord } from '../schemas/maintenance'
+import type { ServiceRecord } from '../schemas/service'
 import type { Vehicle } from '../schemas/vehicle'
 
 interface AlertSources {
   vehicles: Vehicle[]
   drivers: Driver[]
   deliveries: Delivery[]
-  maintenanceRecords: MaintenanceRecord[]
+  serviceRecords: ServiceRecord[]
 }
 
 const MESSAGES: Record<AlertType, string> = {
@@ -25,7 +25,7 @@ const MESSAGES: Record<AlertType, string> = {
 function pickRelatedEntity(type: AlertType, sources: AlertSources): EntityRef {
   switch (type) {
     case 'vehicle_service_due':
-      return { kind: 'maintenance', id: faker.helpers.arrayElement(sources.maintenanceRecords).id }
+      return { kind: 'service', id: faker.helpers.arrayElement(sources.serviceRecords).id }
     case 'delivery_delayed':
     case 'assignment_conflict':
       return { kind: 'delivery', id: faker.helpers.arrayElement(sources.deliveries).id }

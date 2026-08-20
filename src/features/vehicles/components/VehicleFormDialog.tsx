@@ -99,7 +99,7 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? `Edit ${vehicle.name}` : 'Add vehicle'}</DialogTitle>
+          <DialogTitle>{isEdit ? `Edit ${vehicle.name}` : 'Add Vehicle'}</DialogTitle>
           <DialogDescription>
             {isEdit ? "Update this vehicle's details." : 'Add a new vehicle to the fleet.'}
           </DialogDescription>
@@ -186,7 +186,7 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
           <Button disabled={isPending || !name || !registration} onClick={handleSubmit}>
-            {isEdit ? 'Save changes' : 'Add vehicle'}
+            {isEdit ? 'Save changes' : 'Add Vehicle'}
           </Button>
         </DialogFooter>
       </DialogContent>

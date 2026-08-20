@@ -19,56 +19,56 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
-import { useCreateMaintenanceRecord } from '../hooks/useCreateMaintenanceRecord'
-import { useUpdateMaintenanceRecord } from '../hooks/useUpdateMaintenanceRecord'
+import { useCreateServiceRecord } from '../hooks/useCreateServiceRecord'
+import { useUpdateServiceRecord } from '../hooks/useUpdateServiceRecord'
 import {
-  maintenanceInputSchema,
-  maintenancePrioritySchema,
-  maintenanceTypeSchema,
-} from '@/mock-api/schemas/maintenance'
-import type { MaintenanceRecord } from '@/mock-api/schemas/maintenance'
-import { MAINTENANCE_PRIORITY_CONFIG } from '../maintenance-status-config'
+  serviceInputSchema,
+  servicePrioritySchema,
+  serviceTypeSchema,
+} from '@/mock-api/schemas/service'
+import type { ServiceRecord } from '@/mock-api/schemas/service'
+import { SERVICE_PRIORITY_CONFIG } from '../service-status-config'
 
 const TYPE_ITEMS: Record<string, string> = Object.fromEntries(
-  maintenanceTypeSchema.options.map((type) => [
+  serviceTypeSchema.options.map((type) => [
     type,
     type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
   ]),
 )
 
 const PRIORITY_ITEMS: Record<string, string> = Object.fromEntries(
-  maintenancePrioritySchema.options.map((priority) => [
+  servicePrioritySchema.options.map((priority) => [
     priority,
-    MAINTENANCE_PRIORITY_CONFIG[priority].label,
+    SERVICE_PRIORITY_CONFIG[priority].label,
   ]),
 )
 
-export interface MaintenanceFormDialogProps {
+export interface ServiceFormDialogProps {
   /** Called with `false` to close. The caller should stop rendering this
    * component in response, so a fresh instance (and fresh form state) mounts
-   * the next time it's opened — see MaintenancePage/MaintenanceDetailPage. */
+   * the next time it's opened — see ServicesPage/ServiceDetailPage. */
   onOpenChange: (open: boolean) => void
   /** Omit to create a new record; pass an existing one to edit it. */
-  record?: MaintenanceRecord
+  record?: ServiceRecord
 }
 
 function toDateInputValue(iso: string): string {
   return iso.slice(0, 10)
 }
 
-export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormDialogProps) {
+export function ServiceFormDialog({ onOpenChange, record }: ServiceFormDialogProps) {
   const isEdit = !!record
   const { data: vehiclesData } = useVehicles({ pageSize: 200 })
-  const createRecord = useCreateMaintenanceRecord()
-  const updateRecord = useUpdateMaintenanceRecord()
+  const createRecord = useCreateServiceRecord()
+  const updateRecord = useUpdateServiceRecord()
   const isPending = createRecord.isPending || updateRecord.isPending
 
   const [vehicleId, setVehicleId] = useState(record?.vehicleId ?? '')
   const vehicleItems: Record<string, string> = Object.fromEntries(
     (vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name]),
   )
-  const [maintenanceType, setMaintenanceType] = useState<string>(
-    record?.maintenanceType ?? maintenanceTypeSchema.options[0],
+  const [serviceType, setServiceType] = useState<string>(
+    record?.serviceType ?? serviceTypeSchema.options[0],
   )
   const [priority, setPriority] = useState<string>(record?.priority ?? 'medium')
   const [scheduledDate, setScheduledDate] = useState(
@@ -79,9 +79,9 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
   const [notes, setNotes] = useState(record?.notes ?? '')
 
   function handleSubmit() {
-    const parsed = maintenanceInputSchema.safeParse({
+    const parsed = serviceInputSchema.safeParse({
       vehicleId,
-      maintenanceType,
+      serviceType,
       priority,
       scheduledDate: scheduledDate ? new Date(scheduledDate).toISOString() : '',
       mileage: Number(mileage),
@@ -94,7 +94,7 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
     }
 
     const onSuccess = () => {
-      toast.success(isEdit ? `${record!.id} updated.` : 'Maintenance record added.')
+      toast.success(isEdit ? `${record!.id} updated.` : 'Service record added.')
       onOpenChange(false)
     }
     const onError = () =>
@@ -111,11 +111,11 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? `Edit ${record.id}` : 'Add maintenance record'}</DialogTitle>
+          <DialogTitle>{isEdit ? `Edit ${record.id}` : 'Add Service Record'}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update this maintenance record's details."
-              : 'Schedule a new maintenance record.'}
+              ? "Update this service record's details."
+              : 'Schedule a new service record.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -144,10 +144,10 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
               <span className="text-sm font-medium">Type</span>
               <Select
                 items={TYPE_ITEMS}
-                value={maintenanceType}
-                onValueChange={(v) => v && setMaintenanceType(v)}
+                value={serviceType}
+                onValueChange={(v) => v && setServiceType(v)}
               >
-                <SelectTrigger className="w-full" aria-label="Maintenance type">
+                <SelectTrigger className="w-full" aria-label="Service type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -181,22 +181,22 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label htmlFor="maintenance-scheduled-date" className="text-sm font-medium">
+              <label htmlFor="service-scheduled-date" className="text-sm font-medium">
                 Scheduled date
               </label>
               <Input
-                id="maintenance-scheduled-date"
+                id="service-scheduled-date"
                 type="date"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor="maintenance-mileage" className="text-sm font-medium">
+              <label htmlFor="service-mileage" className="text-sm font-medium">
                 Mileage (km)
               </label>
               <Input
-                id="maintenance-mileage"
+                id="service-mileage"
                 type="number"
                 min={0}
                 value={mileage}
@@ -205,21 +205,21 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
             </div>
           </div>
           <div className="space-y-1">
-            <label htmlFor="maintenance-description" className="text-sm font-medium">
+            <label htmlFor="service-description" className="text-sm font-medium">
               Description
             </label>
             <Input
-              id="maintenance-description"
+              id="service-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="space-y-1">
-            <label htmlFor="maintenance-notes" className="text-sm font-medium">
+            <label htmlFor="service-notes" className="text-sm font-medium">
               Notes
             </label>
             <Input
-              id="maintenance-notes"
+              id="service-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -232,7 +232,7 @@ export function MaintenanceFormDialog({ onOpenChange, record }: MaintenanceFormD
             disabled={isPending || !vehicleId || !scheduledDate || !description}
             onClick={handleSubmit}
           >
-            {isEdit ? 'Save changes' : 'Add record'}
+            {isEdit ? 'Save changes' : 'Add Record'}
           </Button>
         </DialogFooter>
       </DialogContent>

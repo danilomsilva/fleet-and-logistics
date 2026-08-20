@@ -82,7 +82,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? `Edit ${driver.name}` : 'Add driver'}</DialogTitle>
+          <DialogTitle>{isEdit ? `Edit ${driver.name}` : 'Add Driver'}</DialogTitle>
           <DialogDescription>
             {isEdit ? "Update this driver's details." : 'Add a new driver.'}
           </DialogDescription>
@@ -134,7 +134,7 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
         <DialogFooter>
           <DialogClose render={<Button variant="outline">Cancel</Button>} />
           <Button disabled={isPending || !name || !assignedVehicleId} onClick={handleSubmit}>
-            {isEdit ? 'Save changes' : 'Add driver'}
+            {isEdit ? 'Save changes' : 'Add Driver'}
           </Button>
         </DialogFooter>
       </DialogContent>

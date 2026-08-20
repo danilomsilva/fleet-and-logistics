@@ -7,7 +7,7 @@ FleetOS is a fleet and logistics operations dashboard used by a company to manag
 - Vehicles
 - Drivers
 - Deliveries
-- Maintenance
+- Services
 - Dispatch operations
 - Operational alerts
 
@@ -31,7 +31,7 @@ Sidebar navigation:
 - Deliveries
 - Vehicles
 - Drivers
-- Maintenance
+- Services
 - Alerts
 
 User/profile menu at the bottom.
@@ -50,7 +50,7 @@ Show:
 - Deliveries today
 - Deliveries delayed
 - Available drivers
-- Vehicles requiring maintenance
+- Vehicles requiring service
 
 Each KPI should show a relevant trend/change where appropriate.
 
@@ -76,7 +76,7 @@ Show vehicles grouped by:
 
 - Available
 - In use
-- Maintenance
+- Service
 - Broken
 
 ### Recent activity
@@ -84,7 +84,7 @@ Show vehicles grouped by:
 Timeline containing events such as:
 
 - Delivery assigned
-- Vehicle entered maintenance
+- Vehicle entered service
 - Driver completed delivery
 - Delivery became delayed
 
@@ -127,7 +127,7 @@ Filters:
 - Status
 - Vehicle type
 - Driver
-- Maintenance status
+- Service status
 
 ### Vehicle detail
 
@@ -143,11 +143,11 @@ Sections:
 - Assigned driver
 - Mileage
 
-**Maintenance**
+**Service**
 
 - Service history
 - Next service
-- Maintenance status
+- Service status
 
 **Delivery history**
 
@@ -320,14 +320,14 @@ Confirm
 
 The UI should prevent obvious conflicts, such as assigning an unavailable driver.
 
-## 8. Maintenance
+## 8. Services
 
-### Maintenance table
+### Services table
 
 Show:
 
 - Vehicle
-- Maintenance type
+- Service type
 - Status
 - Scheduled date
 - Mileage
@@ -344,10 +344,10 @@ Filters:
 
 - Status
 - Vehicle
-- Maintenance type
-- Date
+- Service type
+- Priority
 
-### Maintenance detail
+### Service detail
 
 Show:
 
@@ -362,9 +362,11 @@ Show:
 
 Actions:
 
-- Schedule maintenance
-- Start maintenance
-- Complete maintenance
+- Schedule service
+- Start service
+- Complete service
+- Edit
+- Delete
 
 ## 9. Alerts
 
@@ -506,4 +508,4 @@ The most important screens are:
 - Dispatch
 - Drivers
 
-Maintenance and Alerts support those workflows.
+Services and Alerts support those workflows.

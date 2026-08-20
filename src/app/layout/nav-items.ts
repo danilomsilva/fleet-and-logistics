@@ -21,6 +21,6 @@ export const navItems: NavItem[] = [
   { label: 'Deliveries', to: '/deliveries', icon: Package },
   { label: 'Vehicles', to: '/vehicles', icon: Car },
   { label: 'Drivers', to: '/drivers', icon: Users },
-  { label: 'Maintenance', to: '/maintenance', icon: Wrench },
+  { label: 'Services', to: '/services', icon: Wrench },
   { label: 'Alerts', to: '/alerts', icon: AlertTriangle },
 ]

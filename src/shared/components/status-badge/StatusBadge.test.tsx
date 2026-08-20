@@ -28,7 +28,7 @@ describe('StatusBadge', () => {
 
   it('has no detectable accessibility violations', async () => {
     const { container } = render(
-      <StatusBadge label="Maintenance due" tone="warning" icon={CheckCircle2} />,
+      <StatusBadge label="Service due" tone="warning" icon={CheckCircle2} />,
     )
     const results = await axe(container)
     expect(results.violations).toEqual([])

@@ -3,9 +3,9 @@ import { generateActivityEvents } from './generators/activity'
 import { generateAlerts } from './generators/alerts'
 import { generateDeliveries } from './generators/deliveries'
 import { generateDrivers } from './generators/drivers'
-import { generateMaintenanceRecords } from './generators/maintenance'
+import { generateServiceRecords } from './generators/services'
 import { generateVehicles } from './generators/vehicles'
-import { computeVehicleMaintenanceStatus } from './maintenance-status'
+import { computeVehicleServiceStatus } from './service-status'
 
 const DEFAULT_SEED = 20260817
 
@@ -13,7 +13,7 @@ const COUNTS = {
   vehicles: 10,
   drivers: 10,
   deliveries: 60,
-  maintenanceRecords: 10,
+  serviceRecords: 10,
   alerts: 20,
   activity: 50,
 } as const
@@ -21,7 +21,7 @@ const COUNTS = {
 /**
  * Pairs every driver with a distinct vehicle 1:1, wiring both sides of the
  * relationship — every driver must have an assigned vehicle, which as a side
- * effect also covers in-use/maintenance vehicles needing a driver. Requires
+ * effect also covers in-use/service vehicles needing a driver. Requires
  * COUNTS.drivers === COUNTS.vehicles.
  */
 function assignDriversToVehicles(
@@ -44,25 +44,25 @@ export function createDb(seed: number = DEFAULT_SEED) {
   assignDriversToVehicles(vehicles, drivers)
 
   const deliveries = generateDeliveries(COUNTS.deliveries, { vehicles, drivers })
-  const maintenanceRecords = generateMaintenanceRecords(COUNTS.maintenanceRecords, { vehicles })
+  const serviceRecords = generateServiceRecords(COUNTS.serviceRecords, { vehicles })
   for (const vehicle of vehicles) {
-    vehicle.maintenanceStatus = computeVehicleMaintenanceStatus(vehicle)
+    vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
   }
   const alerts = generateAlerts(COUNTS.alerts, {
     vehicles,
     drivers,
     deliveries,
-    maintenanceRecords,
+    serviceRecords,
   })
   const activity = generateActivityEvents(COUNTS.activity, {
     vehicles,
     drivers,
     deliveries,
-    maintenanceRecords,
+    serviceRecords,
     alerts,
   })
 
-  return { vehicles, drivers, deliveries, maintenanceRecords, alerts, activity }
+  return { vehicles, drivers, deliveries, serviceRecords, alerts, activity }
 }
 
 export type Db = ReturnType<typeof createDb>

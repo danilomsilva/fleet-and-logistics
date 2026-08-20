@@ -10,7 +10,7 @@ const CASES: [path: string, heading: string][] = [
   ['/deliveries', 'Deliveries'],
   ['/vehicles', 'Vehicles'],
   ['/drivers', 'Drivers'],
-  ['/maintenance', 'Maintenance'],
+  ['/services', 'Services'],
   ['/alerts', 'Alerts'],
 ]
 

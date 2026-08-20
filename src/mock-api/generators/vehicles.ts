@@ -35,7 +35,7 @@ export function generateVehicles(count: number): Vehicle[] {
   tomorrow.setDate(tomorrow.getDate() + 1)
 
   // Exactly 1 broken vehicle (also overdue), 1 more overdue vehicle, and 2
-  // vehicles due today — only those 2 have status 'maintenance' ('Service').
+  // vehicles due today — only those 2 have status 'service' ('Service').
   const [brokenIndex, pastIndex, serviceIndexA, serviceIndexB] = faker.helpers.arrayElements(
     Array.from({ length: count }, (_, i) => i),
     4,
@@ -49,7 +49,7 @@ export function generateVehicles(count: number): Vehicle[] {
 
     let status: VehicleStatus
     if (isBroken) status = 'broken'
-    else if (isInService) status = 'maintenance'
+    else if (isInService) status = 'service'
     else status = faker.helpers.arrayElement(REGULAR_STATUSES)
 
     let nextServiceDate: Date
@@ -71,7 +71,7 @@ export function generateVehicles(count: number): Vehicle[] {
       location: isBroken ? warehouseGeoPoint() : irishTownGeoPoint(),
       mileage: faker.number.int({ min: 1_000, max: 150_000 }),
       nextServiceDate: nextServiceDate.toISOString(),
-      maintenanceStatus: 'up_to_date',
+      serviceStatus: 'up_to_date',
       lastUpdatedAt: faker.date.recent({ days: 7 }).toISOString(),
     }
   })

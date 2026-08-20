@@ -1,12 +1,12 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { Link } from 'react-router'
-import type { MaintenanceRecord } from '@/mock-api/schemas/maintenance'
+import type { ServiceRecord } from '@/mock-api/schemas/service'
 import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { dataTableFeatures } from '@/shared/components/data-table/data-table-features'
 import {
-  MAINTENANCE_PRIORITY_CONFIG,
-  MAINTENANCE_STATUS_CONFIG,
-} from '../maintenance-status-config'
+  SERVICE_PRIORITY_CONFIG,
+  SERVICE_STATUS_CONFIG,
+} from '../service-status-config'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -18,14 +18,14 @@ function formatDate(value: string | null) {
   return value ? dateFormatter.format(new Date(value)) : '—'
 }
 
-const helper = createColumnHelper<typeof dataTableFeatures, MaintenanceRecord>()
+const helper = createColumnHelper<typeof dataTableFeatures, ServiceRecord>()
 
-export function createMaintenanceColumns(vehicleNameById: Map<string, string>) {
+export function createServiceColumns(vehicleNameById: Map<string, string>) {
   return [
     helper.accessor('id', {
       header: 'Record ID',
       cell: (info) => (
-        <Link to={`/maintenance/${info.getValue()}`} className="font-medium hover:underline">
+        <Link to={`/services/${info.getValue()}`} className="font-medium hover:underline">
           {info.getValue()}
         </Link>
       ),
@@ -41,21 +41,21 @@ export function createMaintenanceColumns(vehicleNameById: Map<string, string>) {
         )
       },
     }),
-    helper.accessor('maintenanceType', {
+    helper.accessor('serviceType', {
       header: 'Type',
       cell: (info) => <span className="capitalize">{info.getValue().replace('_', ' ')}</span>,
     }),
     helper.accessor('priority', {
       header: 'Priority',
       cell: (info) => {
-        const config = MAINTENANCE_PRIORITY_CONFIG[info.getValue()]
+        const config = SERVICE_PRIORITY_CONFIG[info.getValue()]
         return <StatusBadge label={config.label} tone={config.tone} icon={config.icon} />
       },
     }),
     helper.accessor('status', {
       header: 'Status',
       cell: (info) => {
-        const config = MAINTENANCE_STATUS_CONFIG[info.getValue()]
+        const config = SERVICE_STATUS_CONFIG[info.getValue()]
         return <StatusBadge label={config.label} tone={config.tone} icon={config.icon} />
       },
     }),

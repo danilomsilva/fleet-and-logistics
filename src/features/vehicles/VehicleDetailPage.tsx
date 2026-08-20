@@ -13,7 +13,7 @@ import { VehicleFormDialog } from './components/VehicleFormDialog'
 import {
   VehicleActivityTab,
   VehicleDeliveryHistoryTab,
-  VehicleMaintenanceTab,
+  VehicleServiceTab,
   VehicleOverviewTab,
 } from './components/VehicleDetailTabs'
 
@@ -62,15 +62,15 @@ export function VehicleDetailPage() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="maintenance">Service</TabsTrigger>
+          <TabsTrigger value="service">Service</TabsTrigger>
           <TabsTrigger value="deliveries">Delivery history</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <VehicleOverviewTab vehicle={vehicle} />
         </TabsContent>
-        <TabsContent value="maintenance">
-          <VehicleMaintenanceTab vehicle={vehicle} />
+        <TabsContent value="service">
+          <VehicleServiceTab vehicle={vehicle} />
         </TabsContent>
         <TabsContent value="deliveries">
           <VehicleDeliveryHistoryTab vehicle={vehicle} />

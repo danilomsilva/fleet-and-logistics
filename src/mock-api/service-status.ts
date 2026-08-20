@@ -1,11 +1,11 @@
-import type { Vehicle, VehicleMaintenanceStatus } from './schemas/vehicle'
+import type { Vehicle, VehicleServiceStatus } from './schemas/vehicle'
 
 const DUE_SOON_THRESHOLD_DAYS = 31
 
-export function computeVehicleMaintenanceStatus(
+export function computeVehicleServiceStatus(
   vehicle: Pick<Vehicle, 'nextServiceDate'>,
   now = new Date(),
-): VehicleMaintenanceStatus {
+): VehicleServiceStatus {
   if (!vehicle.nextServiceDate) return 'up_to_date'
 
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())

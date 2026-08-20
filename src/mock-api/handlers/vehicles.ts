@@ -12,7 +12,7 @@ import {
 import type { Vehicle } from '../schemas/vehicle'
 import { vehicleInputSchema, vehicleStatusSchema } from '../schemas/vehicle'
 import { irishTownGeoPoint, warehouseGeoPoint } from '../generators/geo'
-import { computeVehicleMaintenanceStatus } from '../maintenance-status'
+import { computeVehicleServiceStatus } from '../service-status'
 
 function nextVehicleId(): string {
   const max = db.vehicles.reduce((acc, v) => {
@@ -46,7 +46,7 @@ export const vehicleHandlers = [
 
     let items: Vehicle[] = [...db.vehicles]
     items = applyTextSearch(items, url, ['name', 'registration'])
-    items = applyExactFilters(items, url, ['status', 'type', 'driverId', 'maintenanceStatus'])
+    items = applyExactFilters(items, url, ['status', 'type', 'driverId', 'serviceStatus'])
     items = applySort(items, url, ['name', 'mileage', 'nextServiceDate', 'lastUpdatedAt'])
 
     return HttpResponse.json(paginate(items, parsePageParams(url)))
@@ -87,7 +87,7 @@ export const vehicleHandlers = [
       location: input.status === 'broken' ? warehouseGeoPoint() : irishTownGeoPoint(),
       mileage: input.mileage,
       nextServiceDate,
-      maintenanceStatus: computeVehicleMaintenanceStatus({ nextServiceDate }),
+      serviceStatus: computeVehicleServiceStatus({ nextServiceDate }),
       lastUpdatedAt: new Date().toISOString(),
     }
     db.vehicles.push(vehicle)
@@ -117,7 +117,7 @@ export const vehicleHandlers = [
     const input = result.data
     relinkDriver(vehicle.id, vehicle.driverId, input.driverId)
     Object.assign(vehicle, input, { lastUpdatedAt: new Date().toISOString() })
-    vehicle.maintenanceStatus = computeVehicleMaintenanceStatus(vehicle)
+    vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
     if (vehicle.status === 'broken') vehicle.location = warehouseGeoPoint()
 
     return HttpResponse.json(vehicle)
@@ -132,7 +132,7 @@ export const vehicleHandlers = [
 
     const [vehicle] = db.vehicles.splice(index, 1)
     relinkDriver(vehicle.id, vehicle.driverId, null)
-    db.maintenanceRecords = db.maintenanceRecords.filter((m) => m.vehicleId !== vehicle.id)
+    db.serviceRecords = db.serviceRecords.filter((m) => m.vehicleId !== vehicle.id)
 
     return new HttpResponse(null, { status: 204 })
   }),
@@ -152,7 +152,7 @@ export const vehicleHandlers = [
 
     vehicle.status = result.data
     if (vehicle.status === 'broken') vehicle.location = warehouseGeoPoint()
-    vehicle.maintenanceStatus = computeVehicleMaintenanceStatus(vehicle)
+    vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
     return HttpResponse.json(vehicle)
   }),
 ]

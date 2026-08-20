@@ -15,9 +15,9 @@ const EVENTS: ActivityEvent[] = [
   },
   {
     id: 'ACT-0002',
-    type: 'vehicle_entered_maintenance',
+    type: 'vehicle_entered_service',
     relatedEntity: { kind: 'vehicle', id: 'VH-001' },
-    description: 'Vehicle entered maintenance',
+    description: 'Vehicle entered service',
     timestamp: '2026-08-17T09:00:00.000Z',
   },
 ]
@@ -34,7 +34,7 @@ describe('ActivityTimeline', () => {
   it('renders one entry per event with its description', () => {
     renderTimeline()
     expect(screen.getByText('Delivery assigned to driver and vehicle')).toBeInTheDocument()
-    expect(screen.getByText('Vehicle entered maintenance')).toBeInTheDocument()
+    expect(screen.getByText('Vehicle entered service')).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
@@ -43,7 +43,7 @@ describe('ActivityTimeline', () => {
     expect(
       screen.getByText('Delivery assigned to driver and vehicle').closest('a'),
     ).toHaveAttribute('href', '/deliveries/DEL-1000')
-    expect(screen.getByText('Vehicle entered maintenance').closest('a')).toHaveAttribute(
+    expect(screen.getByText('Vehicle entered service').closest('a')).toHaveAttribute(
       'href',
       '/vehicles/VH-001',
     )

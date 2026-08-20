@@ -1,6 +1,6 @@
 # FleetOS
 
-**A portfolio-grade fleet & logistics operations dashboard** — a production-style React/TypeScript frontend for managing vehicles, drivers, deliveries, maintenance, dispatch, and operational alerts, built against a fully simulated backend (real HTTP requests, network latency, and mutable state — not static JSON).
+**A portfolio-grade fleet & logistics operations dashboard** — a production-style React/TypeScript frontend for managing vehicles, drivers, deliveries, services, dispatch, and operational alerts, built against a fully simulated backend (real HTTP requests, network latency, and mutable state — not static JSON).
 
 **[Live demo →](https://danilomsilva.github.io/fleet-and-logistics/)** &nbsp;·&nbsp; no login required, boots straight into the dashboard
 
@@ -28,7 +28,7 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 - **CI on every push and PR** — lint, typecheck (including e2e specs), unit tests, production build, and the full e2e suite, via [GitHub Actions](.github/workflows/ci.yml).
 - **Route-level code splitting**: the initial bundle is ~326 KB gzipped; MapLibre GL (~250 KB gzipped) and Recharts load only when their own routes are visited.
 - **Accessibility built in, not retrofitted**: every status is communicated by icon + text (never color alone), all interactive controls have accessible names, focus-visible rings and a skip link are present, and the data table's sort/pagination/selection controls are fully keyboard-operable.
-- **A real optimistic-update pattern**: delivery/maintenance status changes and alert acknowledge/resolve update the UI immediately via TanStack Query's `onMutate`/`onError`/`onSettled`, rolling back cleanly on failure.
+- **A real optimistic-update pattern**: delivery/service status changes and alert acknowledge/resolve update the UI immediately via TanStack Query's `onMutate`/`onError`/`onSettled`, rolling back cleanly on failure.
 - **Debugged and fixed real third-party integration bugs**, not just app code — see [Notable bugs found & fixed](#notable-bugs-found--fixed) below.
 
 ## Features
@@ -36,10 +36,10 @@ Most portfolio dashboards are a handful of static cards on top of hardcoded JSON
 | Screen | What it does |
 |---|---|
 | **Dashboard** | KPI cards, a delivery-status chart with a Today/7d/30d toggle, fleet-status breakdown, top alerts, and a recent-activity feed — all aggregated from the same endpoints the other screens use, not separate mock numbers. |
-| **Vehicles / Drivers** | Sortable, filterable, searchable tables with column visibility, row selection, and bulk status/delete actions; detail pages with tabbed history (maintenance, deliveries, activity). Both support full add/edit/delete, with driver-vehicle assignment relinked server-side on every change so the fleet roster and driver records never go out of sync — including reassigning a vehicle already claimed by another driver. |
+| **Vehicles / Drivers** | Sortable, filterable, searchable tables with column visibility, row selection, and bulk status/delete actions; detail pages with tabbed history (service, deliveries, activity). Both support full add/edit/delete, with driver-vehicle assignment relinked server-side on every change so the fleet roster and driver records never go out of sync — including reassigning a vehicle already claimed by another driver. |
 | **Deliveries** | The most complex table: a full filter set reflected in the URL (bookmarkable/shareable views), a detail page with state-dependent actions (assign → start → deliver / delay), and an assignment dialog that clearly explains *why* no driver/vehicle is available rather than showing an empty dropdown. |
 | **Dispatch** | A MapLibre GL map of fleet vehicles and unassigned delivery pickups (color/shape-coded by status), an unassigned-deliveries panel, and a Zustand-backed assignment wizard (driver → vehicle → review → confirm) — conflict prevention happens at the data layer: each step only offers entities the API reports as actually available. |
-| **Maintenance** | Scheduling and status transitions (due → in progress → completed) with optimistic updates. |
+| **Services** | Scheduling and status transitions (due → in progress → completed) with optimistic updates. |
 | **Alerts** | Inline acknowledge/resolve actions and click-through navigation to the alert's related vehicle, driver, or delivery. |
 
 <img src="docs/screenshots/deliveries.png" alt="Deliveries table with column sorting, a full filter set, and status badges" width="100%" />

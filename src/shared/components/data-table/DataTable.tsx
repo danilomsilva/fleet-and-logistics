@@ -329,7 +329,7 @@ export function DataTable<TData extends RowData>({
       </Table>
 
       {onPaginationChange && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 border-t pt-4">
           <p className="text-sm text-muted-foreground shrink-0">
             Page {table.getPageCount() === 0 ? 0 : pagination.pageIndex + 1} of{' '}
             {table.getPageCount()}

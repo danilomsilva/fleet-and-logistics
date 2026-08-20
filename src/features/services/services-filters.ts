@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const maintenanceFiltersSchema = z.object({
+export const serviceFiltersSchema = z.object({
   status: z.string().optional().default(''),
   priority: z.string().optional().default(''),
   vehicleId: z.string().optional().default(''),

@@ -1,14 +1,14 @@
 import { z } from 'zod'
 import { geoPointSchema } from './common'
 
-export const vehicleStatusSchema = z.enum(['available', 'in_use', 'maintenance', 'broken'])
+export const vehicleStatusSchema = z.enum(['available', 'in_use', 'service', 'broken'])
 export type VehicleStatus = z.infer<typeof vehicleStatusSchema>
 
 export const vehicleTypeSchema = z.enum(['van', 'truck', 'car', 'motorcycle'])
 export type VehicleType = z.infer<typeof vehicleTypeSchema>
 
-export const vehicleMaintenanceStatusSchema = z.enum(['up_to_date', 'due_soon', 'overdue'])
-export type VehicleMaintenanceStatus = z.infer<typeof vehicleMaintenanceStatusSchema>
+export const vehicleServiceStatusSchema = z.enum(['up_to_date', 'due_soon', 'overdue'])
+export type VehicleServiceStatus = z.infer<typeof vehicleServiceStatusSchema>
 
 export const vehicleSchema = z.object({
   id: z.string(),
@@ -20,7 +20,7 @@ export const vehicleSchema = z.object({
   location: geoPointSchema,
   mileage: z.number().nonnegative(),
   nextServiceDate: z.string().datetime().nullable(),
-  maintenanceStatus: vehicleMaintenanceStatusSchema,
+  serviceStatus: vehicleServiceStatusSchema,
   lastUpdatedAt: z.string().datetime(),
 })
 export type Vehicle = z.infer<typeof vehicleSchema>
@@ -36,7 +36,7 @@ export const vehicleInputSchema = z
     mileage: z.number().nonnegative(),
   })
   .refine(
-    (input) => !(input.status === 'in_use' || input.status === 'maintenance') || input.driverId,
+    (input) => !(input.status === 'in_use' || input.status === 'service') || input.driverId,
     {
       message: 'A driver must be assigned when status is In use or Service',
       path: ['driverId'],

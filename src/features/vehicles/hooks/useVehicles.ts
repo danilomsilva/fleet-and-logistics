@@ -10,7 +10,7 @@ export interface VehiclesQueryParams {
   status?: string
   type?: string
   driverId?: string
-  maintenanceStatus?: string
+  serviceStatus?: string
   q?: string
 }
 

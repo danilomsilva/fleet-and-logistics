@@ -3,12 +3,12 @@ import type { Vehicle } from '@/mock-api/schemas/vehicle'
 import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { ActivityTimeline } from '@/shared/components/activity-timeline/ActivityTimeline'
 import { EmptyState } from '@/shared/components/empty-state/EmptyState'
-import { useMaintenanceRecords } from '@/features/maintenance/hooks/useMaintenanceRecords'
+import { useServiceRecords } from '@/features/services/hooks/useServiceRecords'
 import { useDeliveries } from '@/features/deliveries/hooks/useDeliveries'
 import { useActivity } from '@/shared/hooks/useActivity'
 import { useDrivers } from '@/features/drivers/hooks/useDrivers'
 import { formatKm } from '@/shared/lib/format'
-import { VEHICLE_MAINTENANCE_STATUS_CONFIG, VEHICLE_STATUS_CONFIG } from '../vehicle-status-config'
+import { VEHICLE_SERVICE_STATUS_CONFIG, VEHICLE_STATUS_CONFIG } from '../vehicle-status-config'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -57,9 +57,9 @@ export function VehicleOverviewTab({ vehicle }: { vehicle: Vehicle }) {
   )
 }
 
-export function VehicleMaintenanceTab({ vehicle }: { vehicle: Vehicle }) {
-  const { data } = useMaintenanceRecords({ vehicleId: vehicle.id, pageSize: 50 })
-  const statusConfig = VEHICLE_MAINTENANCE_STATUS_CONFIG[vehicle.maintenanceStatus]
+export function VehicleServiceTab({ vehicle }: { vehicle: Vehicle }) {
+  const { data } = useServiceRecords({ vehicleId: vehicle.id, pageSize: 50 })
+  const statusConfig = VEHICLE_SERVICE_STATUS_CONFIG[vehicle.serviceStatus]
 
   return (
     <div className="space-y-4">
@@ -86,7 +86,7 @@ export function VehicleMaintenanceTab({ vehicle }: { vehicle: Vehicle }) {
         <ul className="space-y-2">
           {data?.data.map((record) => (
             <li key={record.id} className="rounded-lg border p-3 text-sm">
-              <p className="font-medium capitalize">{record.maintenanceType.replace('_', ' ')}</p>
+              <p className="font-medium capitalize">{record.serviceType.replace('_', ' ')}</p>
               <p className="text-muted-foreground">
                 Scheduled {formatDate(record.scheduledDate)} · {record.status.replace('_', ' ')}
               </p>

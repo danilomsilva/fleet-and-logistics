@@ -8,66 +8,66 @@ import {
   parsePageParams,
   randomDelay,
 } from './query-utils'
-import type { MaintenanceRecord } from '../schemas/maintenance'
-import { maintenanceInputSchema, maintenanceStatusSchema } from '../schemas/maintenance'
-import { computeVehicleMaintenanceStatus } from '../maintenance-status'
+import type { ServiceRecord } from '../schemas/service'
+import { serviceInputSchema, serviceStatusSchema } from '../schemas/service'
+import { computeVehicleServiceStatus } from '../service-status'
 
-function applyDateFilter(items: MaintenanceRecord[], url: URL): MaintenanceRecord[] {
+function applyDateFilter(items: ServiceRecord[], url: URL): ServiceRecord[] {
   const date = url.searchParams.get('date')
   if (!date) return items
   return items.filter((item) => item.scheduledDate.startsWith(date))
 }
 
-function nextMaintenanceId(): string {
-  const max = db.maintenanceRecords.reduce((acc, m) => {
-    const n = Number(m.id.replace('MNT-', ''))
+function nextServiceId(): string {
+  const max = db.serviceRecords.reduce((acc, m) => {
+    const n = Number(m.id.replace('SVC-', ''))
     return Number.isFinite(n) && n > acc ? n : acc
   }, 0)
-  return `MNT-${String(max + 1).padStart(3, '0')}`
+  return `SVC-${String(max + 1).padStart(3, '0')}`
 }
 
-export const maintenanceHandlers = [
-  http.get('/api/maintenance', async ({ request }) => {
+export const serviceHandlers = [
+  http.get('/api/services', async ({ request }) => {
     await randomDelay()
     const url = new URL(request.url)
 
-    let items: MaintenanceRecord[] = [...db.maintenanceRecords]
+    let items: ServiceRecord[] = [...db.serviceRecords]
     items = applyTextSearch(items, url, ['description'])
-    items = applyExactFilters(items, url, ['status', 'vehicleId', 'maintenanceType', 'priority'])
+    items = applyExactFilters(items, url, ['status', 'vehicleId', 'serviceType', 'priority'])
     items = applyDateFilter(items, url)
     items = applySort(items, url, ['scheduledDate', 'priority', 'mileage'])
 
     return HttpResponse.json(paginate(items, parsePageParams(url)))
   }),
 
-  http.get('/api/maintenance/:id', async ({ params }) => {
+  http.get('/api/services/:id', async ({ params }) => {
     await randomDelay()
-    const record = db.maintenanceRecords.find((m) => m.id === params.id)
+    const record = db.serviceRecords.find((m) => m.id === params.id)
     if (!record) {
       return HttpResponse.json(
-        { message: `Maintenance record ${params.id} not found` },
+        { message: `Service record ${params.id} not found` },
         { status: 404 },
       )
     }
     return HttpResponse.json(record)
   }),
 
-  http.post('/api/maintenance', async ({ request }) => {
+  http.post('/api/services', async ({ request }) => {
     await randomDelay()
     const body = await request.json()
-    const result = maintenanceInputSchema.safeParse(body)
+    const result = serviceInputSchema.safeParse(body)
     if (!result.success) {
       return HttpResponse.json(
-        { message: 'Invalid maintenance record', issues: result.error.issues },
+        { message: 'Invalid service record', issues: result.error.issues },
         { status: 400 },
       )
     }
 
     const input = result.data
-    const record: MaintenanceRecord = {
-      id: nextMaintenanceId(),
+    const record: ServiceRecord = {
+      id: nextServiceId(),
       vehicleId: input.vehicleId,
-      maintenanceType: input.maintenanceType,
+      serviceType: input.serviceType,
       status: 'scheduled',
       priority: input.priority,
       description: input.description,
@@ -76,26 +76,26 @@ export const maintenanceHandlers = [
       mileage: input.mileage,
       notes: input.notes,
     }
-    db.maintenanceRecords.push(record)
+    db.serviceRecords.push(record)
 
     return HttpResponse.json(record, { status: 201 })
   }),
 
-  http.patch('/api/maintenance/:id', async ({ params, request }) => {
+  http.patch('/api/services/:id', async ({ params, request }) => {
     await randomDelay()
-    const record = db.maintenanceRecords.find((m) => m.id === params.id)
+    const record = db.serviceRecords.find((m) => m.id === params.id)
     if (!record) {
       return HttpResponse.json(
-        { message: `Maintenance record ${params.id} not found` },
+        { message: `Service record ${params.id} not found` },
         { status: 404 },
       )
     }
 
     const body = await request.json()
-    const result = maintenanceInputSchema.safeParse(body)
+    const result = serviceInputSchema.safeParse(body)
     if (!result.success) {
       return HttpResponse.json(
-        { message: 'Invalid maintenance record', issues: result.error.issues },
+        { message: 'Invalid service record', issues: result.error.issues },
         { status: 400 },
       )
     }
@@ -105,41 +105,41 @@ export const maintenanceHandlers = [
     return HttpResponse.json(record)
   }),
 
-  http.delete('/api/maintenance/:id', async ({ params }) => {
+  http.delete('/api/services/:id', async ({ params }) => {
     await randomDelay()
-    const index = db.maintenanceRecords.findIndex((m) => m.id === params.id)
+    const index = db.serviceRecords.findIndex((m) => m.id === params.id)
     if (index === -1) {
       return HttpResponse.json(
-        { message: `Maintenance record ${params.id} not found` },
+        { message: `Service record ${params.id} not found` },
         { status: 404 },
       )
     }
 
-    db.maintenanceRecords.splice(index, 1)
+    db.serviceRecords.splice(index, 1)
 
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.patch('/api/maintenance/:id/status', async ({ params, request }) => {
+  http.patch('/api/services/:id/status', async ({ params, request }) => {
     await randomDelay()
-    const record = db.maintenanceRecords.find((m) => m.id === params.id)
+    const record = db.serviceRecords.find((m) => m.id === params.id)
     if (!record) {
       return HttpResponse.json(
-        { message: `Maintenance record ${params.id} not found` },
+        { message: `Service record ${params.id} not found` },
         { status: 404 },
       )
     }
 
     const body = await request.json()
-    const result = maintenanceStatusSchema.safeParse((body as { status?: unknown })?.status)
+    const result = serviceStatusSchema.safeParse((body as { status?: unknown })?.status)
     if (!result.success) {
-      return HttpResponse.json({ message: 'Invalid maintenance status' }, { status: 400 })
+      return HttpResponse.json({ message: 'Invalid service status' }, { status: 400 })
     }
 
     const vehicle = db.vehicles.find((v) => v.id === record.vehicleId)
     if (result.data === 'in_progress' && vehicle && !vehicle.driverId) {
       return HttpResponse.json(
-        { message: 'Assign a driver to this vehicle before starting maintenance' },
+        { message: 'Assign a driver to this vehicle before starting service' },
         { status: 400 },
       )
     }
@@ -149,11 +149,11 @@ export const maintenanceHandlers = [
 
     if (vehicle) {
       if (result.data === 'in_progress') {
-        vehicle.status = 'maintenance'
-      } else if (result.data === 'completed' && vehicle.status === 'maintenance') {
+        vehicle.status = 'service'
+      } else if (result.data === 'completed' && vehicle.status === 'service') {
         vehicle.status = 'available'
       }
-      vehicle.maintenanceStatus = computeVehicleMaintenanceStatus(vehicle)
+      vehicle.serviceStatus = computeVehicleServiceStatus(vehicle)
     }
 
     return HttpResponse.json(record)

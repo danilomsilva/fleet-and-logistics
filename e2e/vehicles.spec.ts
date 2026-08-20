@@ -53,12 +53,12 @@ test('adding, editing, and deleting a vehicle works end to end', async ({ page }
   await expect(page.getByRole('columnheader', { name: 'Vehicle' })).toBeVisible()
 
   // Add
-  await page.getByRole('button', { name: 'Add vehicle' }).click()
+  await page.getByRole('button', { name: 'Add Vehicle' }).click()
   const addDialog = page.getByRole('dialog')
-  await expect(addDialog.getByRole('heading', { name: 'Add vehicle' })).toBeVisible()
+  await expect(addDialog.getByRole('heading', { name: 'Add Vehicle' })).toBeVisible()
   await addDialog.getByLabel('Name').fill('E2E Test Van')
   await addDialog.getByLabel('Registration').fill('26-E2E-1')
-  await addDialog.getByRole('button', { name: 'Add vehicle' }).click()
+  await addDialog.getByRole('button', { name: 'Add Vehicle' }).click()
   await expect(page.getByText('added to the fleet')).toBeVisible()
 
   await page.getByPlaceholder('Search vehicles…').fill('E2E Test Van')

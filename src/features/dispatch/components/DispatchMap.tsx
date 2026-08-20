@@ -20,7 +20,7 @@ setWorkerUrl(`${import.meta.env.BASE_URL}maplibre/maplibre-gl-worker.mjs`)
 const VEHICLE_STATUS_COLOR: Record<VehicleStatus, string> = {
   available: '#059669',
   in_use: '#2563eb',
-  maintenance: '#d97706',
+  service: '#d97706',
   broken: '#6b7280',
 }
 

@@ -9,13 +9,13 @@ import { StatusBadge } from '@/shared/components/status-badge/StatusBadge'
 import { ActivityTimeline } from '@/shared/components/activity-timeline/ActivityTimeline'
 import { ConfirmDialog } from '@/shared/components/confirm-dialog/ConfirmDialog'
 import { useActivity } from '@/shared/hooks/useActivity'
-import { useMaintenanceRecord } from './hooks/useMaintenanceRecord'
-import { useUpdateMaintenanceStatus } from './hooks/useUpdateMaintenanceStatus'
-import { useDeleteMaintenanceRecord } from './hooks/useDeleteMaintenanceRecord'
+import { useServiceRecord } from './hooks/useServiceRecord'
+import { useUpdateServiceStatus } from './hooks/useUpdateServiceStatus'
+import { useDeleteServiceRecord } from './hooks/useDeleteServiceRecord'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
 import { formatKm } from '@/shared/lib/format'
-import { MAINTENANCE_PRIORITY_CONFIG, MAINTENANCE_STATUS_CONFIG } from './maintenance-status-config'
-import { MaintenanceFormDialog } from './components/MaintenanceFormDialog'
+import { SERVICE_PRIORITY_CONFIG, SERVICE_STATUS_CONFIG } from './service-status-config'
+import { ServiceFormDialog } from './components/ServiceFormDialog'
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -27,26 +27,26 @@ function formatDate(value: string | null) {
   return value ? dateFormatter.format(new Date(value)) : '—'
 }
 
-export function MaintenanceDetailPage() {
+export function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: record, isLoading, isError, refetch } = useMaintenanceRecord(id ?? '')
+  const { data: record, isLoading, isError, refetch } = useServiceRecord(id ?? '')
   const { data: vehiclesData } = useVehicles({ pageSize: 200 })
   const { data: activityData } = useActivity({
-    entityKind: 'maintenance',
+    entityKind: 'service',
     entityId: id,
     pageSize: 50,
   })
-  const updateStatus = useUpdateMaintenanceStatus()
-  const deleteRecord = useDeleteMaintenanceRecord()
+  const updateStatus = useUpdateServiceStatus()
+  const deleteRecord = useDeleteServiceRecord()
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  if (isLoading) return <DetailPageSkeleton label="Loading maintenance record" />
+  if (isLoading) return <DetailPageSkeleton label="Loading service record" />
   if (isError || !record) {
     return (
       <div className="p-6">
-        <ErrorState title="Couldn't load maintenance record" onRetry={() => refetch()} />
+        <ErrorState title="Couldn't load service record" onRetry={() => refetch()} />
       </div>
     )
   }
@@ -55,22 +55,22 @@ export function MaintenanceDetailPage() {
     deleteRecord.mutate(record!.id, {
       onSuccess: () => {
         toast.success(`${record!.id} deleted.`)
-        navigate('/maintenance')
+        navigate('/services')
       },
       onError: () => toast.error("Couldn't delete the record. Please try again."),
     })
   }
 
   const vehicle = vehiclesData?.data.find((v) => v.id === record.vehicleId)
-  const statusConfig = MAINTENANCE_STATUS_CONFIG[record.status]
-  const priorityConfig = MAINTENANCE_PRIORITY_CONFIG[record.priority]
+  const statusConfig = SERVICE_STATUS_CONFIG[record.status]
+  const priorityConfig = SERVICE_PRIORITY_CONFIG[record.priority]
 
   function handleStatusChange(status: 'in_progress' | 'completed', successMessage: string) {
     updateStatus.mutate(
       { id: record!.id, status },
       {
         onSuccess: () => toast.success(successMessage),
-        onError: () => toast.error("Couldn't update the maintenance record. Please try again."),
+        onError: () => toast.error("Couldn't update the service record. Please try again."),
       },
     )
   }
@@ -86,7 +86,7 @@ export function MaintenanceDetailPage() {
         record.vehicleId
       ),
     ],
-    ['Type', <span className="capitalize">{record.maintenanceType.replace('_', ' ')}</span>],
+    ['Type', <span className="capitalize">{record.serviceType.replace('_', ' ')}</span>],
     [
       'Priority',
       <StatusBadge
@@ -117,14 +117,14 @@ export function MaintenanceDetailPage() {
                 size="sm"
                 disabled={updateStatus.isPending || !vehicle?.driverId}
                 onClick={() =>
-                  handleStatusChange('in_progress', `Maintenance ${record.id} started.`)
+                  handleStatusChange('in_progress', `Service ${record.id} started.`)
                 }
               >
                 Start
               </Button>
               {!vehicle?.driverId && (
                 <p className="text-xs text-muted-foreground">
-                  Assign a driver to this vehicle before starting maintenance.
+                  Assign a driver to this vehicle before starting service.
                 </p>
               )}
             </div>
@@ -134,7 +134,7 @@ export function MaintenanceDetailPage() {
               size="sm"
               disabled={updateStatus.isPending}
               onClick={() =>
-                handleStatusChange('completed', `Maintenance ${record.id} marked complete.`)
+                handleStatusChange('completed', `Service ${record.id} marked complete.`)
               }
             >
               Mark complete
@@ -165,12 +165,12 @@ export function MaintenanceDetailPage() {
         <ActivityTimeline events={activityData?.data ?? []} />
       </div>
 
-      {editOpen && <MaintenanceFormDialog onOpenChange={setEditOpen} record={record} />}
+      {editOpen && <ServiceFormDialog onOpenChange={setEditOpen} record={record} />}
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title={`Delete ${record.id}?`}
-        description="This removes the maintenance record. This can't be undone."
+        description="This removes the service record. This can't be undone."
         confirmLabel="Delete"
         variant="destructive"
         isLoading={deleteRecord.isPending}

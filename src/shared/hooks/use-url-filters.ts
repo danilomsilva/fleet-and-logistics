@@ -10,7 +10,7 @@ import type { z, ZodObject, ZodRawShape } from 'zod'
  *
  * Required by spec section 6 ("Filters should be reflected in the URL so
  * the current view can be bookmarked/shared"), reused across Vehicles/
- * Drivers/Deliveries/Maintenance/Alerts for consistency.
+ * Drivers/Deliveries/Service/Alerts for consistency.
  */
 export function useUrlFilters<Shape extends ZodRawShape>(schema: ZodObject<Shape>) {
   const [searchParams, setSearchParams] = useSearchParams()

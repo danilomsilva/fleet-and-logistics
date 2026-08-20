@@ -25,12 +25,12 @@ const DriversPage = lazy(() =>
 const DriverDetailPage = lazy(() =>
   import('@/features/drivers/DriverDetailPage').then((m) => ({ default: m.DriverDetailPage })),
 )
-const MaintenancePage = lazy(() =>
-  import('@/features/maintenance/MaintenancePage').then((m) => ({ default: m.MaintenancePage })),
+const ServicesPage = lazy(() =>
+  import('@/features/services/ServicesPage').then((m) => ({ default: m.ServicesPage })),
 )
-const MaintenanceDetailPage = lazy(() =>
-  import('@/features/maintenance/MaintenanceDetailPage').then((m) => ({
-    default: m.MaintenanceDetailPage,
+const ServiceDetailPage = lazy(() =>
+  import('@/features/services/ServiceDetailPage').then((m) => ({
+    default: m.ServiceDetailPage,
   })),
 )
 const VehiclesPage = lazy(() =>
@@ -52,8 +52,8 @@ export function AppRoutes() {
         <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="drivers" element={<DriversPage />} />
         <Route path="drivers/:id" element={<DriverDetailPage />} />
-        <Route path="maintenance" element={<MaintenancePage />} />
-        <Route path="maintenance/:id" element={<MaintenanceDetailPage />} />
+        <Route path="services" element={<ServicesPage />} />
+        <Route path="services/:id" element={<ServiceDetailPage />} />
         <Route path="alerts" element={<AlertsPage />} />
       </Route>
     </Routes>

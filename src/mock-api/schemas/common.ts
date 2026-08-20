@@ -7,7 +7,7 @@ export const geoPointSchema = z.object({
 })
 export type GeoPoint = z.infer<typeof geoPointSchema>
 
-export const entityKindSchema = z.enum(['vehicle', 'driver', 'delivery', 'maintenance', 'alert'])
+export const entityKindSchema = z.enum(['vehicle', 'driver', 'delivery', 'service', 'alert'])
 export type EntityKind = z.infer<typeof entityKindSchema>
 
 export const entityRefSchema = z.object({

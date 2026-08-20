@@ -5,14 +5,14 @@ import type { Alert } from '../schemas/alert'
 import type { EntityKind, EntityRef } from '../schemas/common'
 import type { Delivery } from '../schemas/delivery'
 import type { Driver } from '../schemas/driver'
-import type { MaintenanceRecord } from '../schemas/maintenance'
+import type { ServiceRecord } from '../schemas/service'
 import type { Vehicle } from '../schemas/vehicle'
 
 interface ActivitySources {
   vehicles: Vehicle[]
   drivers: Driver[]
   deliveries: Delivery[]
-  maintenanceRecords: MaintenanceRecord[]
+  serviceRecords: ServiceRecord[]
   alerts: Alert[]
 }
 
@@ -24,13 +24,13 @@ const EVENT_ENTITY_KIND: Record<ActivityEventType, EntityKind> = {
   delivery_delayed: 'delivery',
   delivery_cancelled: 'delivery',
   vehicle_status_changed: 'vehicle',
-  vehicle_entered_maintenance: 'vehicle',
-  vehicle_exited_maintenance: 'vehicle',
+  vehicle_entered_service: 'vehicle',
+  vehicle_exited_service: 'vehicle',
   driver_status_changed: 'driver',
   driver_completed_delivery: 'driver',
-  maintenance_scheduled: 'maintenance',
-  maintenance_started: 'maintenance',
-  maintenance_completed: 'maintenance',
+  service_scheduled: 'service',
+  service_started: 'service',
+  service_completed: 'service',
   alert_acknowledged: 'alert',
   alert_resolved: 'alert',
 }
@@ -43,13 +43,13 @@ const DESCRIPTIONS: Record<ActivityEventType, string> = {
   delivery_delayed: 'Delivery became delayed',
   delivery_cancelled: 'Delivery cancelled',
   vehicle_status_changed: 'Vehicle status changed',
-  vehicle_entered_maintenance: 'Vehicle entered maintenance',
-  vehicle_exited_maintenance: 'Vehicle exited maintenance',
+  vehicle_entered_service: 'Vehicle entered service',
+  vehicle_exited_service: 'Vehicle exited service',
   driver_status_changed: 'Driver status changed',
   driver_completed_delivery: 'Driver completed a delivery',
-  maintenance_scheduled: 'Maintenance scheduled',
-  maintenance_started: 'Maintenance started',
-  maintenance_completed: 'Maintenance completed',
+  service_scheduled: 'Service scheduled',
+  service_started: 'Service started',
+  service_completed: 'Service completed',
   alert_acknowledged: 'Alert acknowledged',
   alert_resolved: 'Alert resolved',
 }
@@ -62,8 +62,8 @@ function pickEntityForKind(kind: EntityKind, sources: ActivitySources): EntityRe
       return { kind, id: faker.helpers.arrayElement(sources.drivers).id }
     case 'delivery':
       return { kind, id: faker.helpers.arrayElement(sources.deliveries).id }
-    case 'maintenance':
-      return { kind, id: faker.helpers.arrayElement(sources.maintenanceRecords).id }
+    case 'service':
+      return { kind, id: faker.helpers.arrayElement(sources.serviceRecords).id }
     case 'alert':
       return { kind, id: faker.helpers.arrayElement(sources.alerts).id }
   }

@@ -4,14 +4,14 @@ import { alertHandlers } from './alerts'
 import { deliveryHandlers } from './deliveries'
 import { dispatchHandlers } from './dispatch'
 import { driverHandlers } from './drivers'
-import { maintenanceHandlers } from './maintenance'
+import { serviceHandlers } from './services'
 import { vehicleHandlers } from './vehicles'
 
 export const handlers: HttpHandler[] = [
   ...vehicleHandlers,
   ...driverHandlers,
   ...deliveryHandlers,
-  ...maintenanceHandlers,
+  ...serviceHandlers,
   ...alertHandlers,
   ...activityHandlers,
   ...dispatchHandlers,

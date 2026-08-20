@@ -33,13 +33,13 @@ test('adding, editing, and deleting a driver works end to end', async ({ page })
   await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible()
 
   // Add
-  await page.getByRole('button', { name: 'Add driver' }).click()
+  await page.getByRole('button', { name: 'Add Driver' }).click()
   const addDialog = page.getByRole('dialog')
-  await expect(addDialog.getByRole('heading', { name: 'Add driver' })).toBeVisible()
+  await expect(addDialog.getByRole('heading', { name: 'Add Driver' })).toBeVisible()
   await addDialog.getByLabel('Name').fill('E2E Test Driver')
   await addDialog.getByRole('combobox', { name: 'Assigned vehicle' }).click()
   await page.getByRole('option').first().click()
-  await addDialog.getByRole('button', { name: 'Add driver' }).click()
+  await addDialog.getByRole('button', { name: 'Add Driver' }).click()
   await expect(page.getByText(/added\./)).toBeVisible()
 
   await page.getByPlaceholder('Search drivers…').fill('E2E Test Driver')

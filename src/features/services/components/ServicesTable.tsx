@@ -2,19 +2,19 @@ import { useMemo, useState } from 'react'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
 import { DataTable } from '@/shared/components/data-table/DataTable'
-import { useMaintenanceRecords } from '../hooks/useMaintenanceRecords'
+import { useServiceRecords } from '../hooks/useServiceRecords'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
-import { createMaintenanceColumns } from './columns'
-import { maintenanceFiltersSchema } from '../maintenance-filters'
+import { createServiceColumns } from './columns'
+import { serviceFiltersSchema } from '../services-filters'
 
-export function MaintenanceTable() {
-  const { filters } = useUrlFilters(maintenanceFiltersSchema)
+export function ServicesTable() {
+  const { filters } = useUrlFilters(serviceFiltersSchema)
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
 
   const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}` : undefined
 
-  const { data, isLoading, isError, refetch } = useMaintenanceRecords({
+  const { data, isLoading, isError, refetch } = useServiceRecords({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
     sort,
@@ -32,7 +32,7 @@ export function MaintenanceTable() {
     return map
   }, [vehiclesData])
 
-  const columns = useMemo(() => createMaintenanceColumns(vehicleNameById), [vehicleNameById])
+  const columns = useMemo(() => createServiceColumns(vehicleNameById), [vehicleNameById])
 
   return (
     <div className="space-y-4">
@@ -48,7 +48,7 @@ export function MaintenanceTable() {
         isLoading={isLoading}
         isError={isError}
         onRetry={() => refetch()}
-        emptyTitle="No maintenance records found"
+        emptyTitle="No service records found"
         emptyDescription="Try adjusting your search or filters."
       />
     </div>

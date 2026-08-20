@@ -58,7 +58,7 @@ export function DashboardPage() {
   const activeDeliveryCount = deliveryList.filter((d) =>
     ACTIVE_DELIVERY_STATUSES.has(d.status),
   ).length
-  const maintenanceCount = vehicleList.filter((v) => v.status === 'maintenance').length
+  const serviceCount = vehicleList.filter((v) => v.status === 'service').length
 
   return (
     <div className="space-y-6 p-6">
@@ -68,7 +68,7 @@ export function DashboardPage() {
         <KPICard label="Total vehicles" value={vehicles.data!.total} icon={Truck} />
         <KPICard label="Active deliveries" value={activeDeliveryCount} icon={Package} />
         <KPICard label="Active alerts" value={activeAlerts.data!.total} icon={AlertTriangle} />
-        <KPICard label="In maintenance" value={maintenanceCount} icon={Wrench} />
+        <KPICard label="In service" value={serviceCount} icon={Wrench} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

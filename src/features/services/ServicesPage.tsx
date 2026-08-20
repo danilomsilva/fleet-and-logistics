@@ -11,18 +11,18 @@ import {
 } from '@/components/ui/select'
 import { useUrlFilters } from '@/shared/hooks/use-url-filters'
 import { useVehicles } from '@/features/vehicles/hooks/useVehicles'
-import { maintenancePrioritySchema, maintenanceStatusSchema } from '@/mock-api/schemas/maintenance'
-import { MAINTENANCE_PRIORITY_CONFIG, MAINTENANCE_STATUS_CONFIG } from './maintenance-status-config'
-import { maintenanceFiltersSchema } from './maintenance-filters'
-import { MaintenanceTable } from './components/MaintenanceTable'
-import { MaintenanceFormDialog } from './components/MaintenanceFormDialog'
+import { servicePrioritySchema, serviceStatusSchema } from '@/mock-api/schemas/service'
+import { SERVICE_PRIORITY_CONFIG, SERVICE_STATUS_CONFIG } from './service-status-config'
+import { serviceFiltersSchema } from './services-filters'
+import { ServicesTable } from './components/ServicesTable'
+import { ServiceFormDialog } from './components/ServiceFormDialog'
 
 const STATUS_ITEMS: Record<string, string> = {
   all: 'All statuses',
   ...Object.fromEntries(
-    maintenanceStatusSchema.options.map((status) => [
+    serviceStatusSchema.options.map((status) => [
       status,
-      MAINTENANCE_STATUS_CONFIG[status].label,
+      SERVICE_STATUS_CONFIG[status].label,
     ]),
   ),
 }
@@ -30,16 +30,16 @@ const STATUS_ITEMS: Record<string, string> = {
 const PRIORITY_ITEMS: Record<string, string> = {
   all: 'All priorities',
   ...Object.fromEntries(
-    maintenancePrioritySchema.options.map((priority) => [
+    servicePrioritySchema.options.map((priority) => [
       priority,
-      MAINTENANCE_PRIORITY_CONFIG[priority].label,
+      SERVICE_PRIORITY_CONFIG[priority].label,
     ]),
   ),
 }
 
-export function MaintenancePage() {
+export function ServicesPage() {
   const [addOpen, setAddOpen] = useState(false)
-  const { filters, setFilters } = useUrlFilters(maintenanceFiltersSchema)
+  const { filters, setFilters } = useUrlFilters(serviceFiltersSchema)
   const { data: vehiclesData } = useVehicles({ pageSize: 200 })
   const vehicleItems: Record<string, string> = {
     all: 'All vehicles',
@@ -49,8 +49,8 @@ export function MaintenancePage() {
   return (
     <div className="space-y-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Maintenance</h1>
-        <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-semibold">Services</h1>
+        <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Search</span>
             <Input
@@ -123,14 +123,14 @@ export function MaintenancePage() {
               </SelectContent>
             </Select>
           </div>
-          <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Button onClick={() => setAddOpen(true)}>
             <Plus aria-hidden="true" />
-            Add maintenance
+            Add Service
           </Button>
         </div>
       </div>
-      <MaintenanceTable />
-      {addOpen && <MaintenanceFormDialog onOpenChange={setAddOpen} />}
+      <ServicesTable />
+      {addOpen && <ServiceFormDialog onOpenChange={setAddOpen} />}
     </div>
   )
 }

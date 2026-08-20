@@ -121,13 +121,13 @@ describe('vehicles handlers', () => {
     expect(missing.status).toBe(404)
   })
 
-  it('deletes a vehicle and removes its maintenance records', async () => {
-    const vehicle = db.vehicles.find((v) => db.maintenanceRecords.some((m) => m.vehicleId === v.id))
+  it('deletes a vehicle and removes its service records', async () => {
+    const vehicle = db.vehicles.find((v) => db.serviceRecords.some((m) => m.vehicleId === v.id))
     if (!vehicle) return
 
     const res = await fetch(`${BASE}/api/vehicles/${vehicle.id}`, { method: 'DELETE' })
     expect(res.status).toBe(204)
-    expect(db.maintenanceRecords.some((m) => m.vehicleId === vehicle.id)).toBe(false)
+    expect(db.serviceRecords.some((m) => m.vehicleId === vehicle.id)).toBe(false)
   })
 })
 
@@ -265,19 +265,19 @@ describe('deliveries handlers', () => {
   })
 })
 
-describe('maintenance handlers', () => {
-  it('filters maintenance records by status', async () => {
-    const target = db.maintenanceRecords.find((m) => m.status === 'completed')
+describe('service handlers', () => {
+  it('filters service records by status', async () => {
+    const target = db.serviceRecords.find((m) => m.status === 'completed')
     if (!target) return
-    const res = await fetch(`${BASE}/api/maintenance?status=completed&pageSize=200`)
+    const res = await fetch(`${BASE}/api/services?status=completed&pageSize=200`)
     const body = await res.json()
     expect(body.data.some((m: { id: string }) => m.id === target.id)).toBe(true)
   })
 
-  it('updates maintenance status and syncs the vehicle', async () => {
-    const target = db.maintenanceRecords.find((m) => {
+  it('updates service status and syncs the vehicle', async () => {
+    const target = db.serviceRecords.find((m) => {
       if (m.status === 'completed') return false
-      return !db.maintenanceRecords.some(
+      return !db.serviceRecords.some(
         (other) =>
           other.id !== m.id && other.vehicleId === m.vehicleId && other.status !== 'completed',
       )
@@ -287,23 +287,23 @@ describe('maintenance handlers', () => {
     vehicle.driverId = db.drivers[0].id
     vehicle.nextServiceDate = new Date().toISOString()
 
-    const started = await fetch(`${BASE}/api/maintenance/${target.id}/status`, {
+    const started = await fetch(`${BASE}/api/services/${target.id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status: 'in_progress' }),
     })
     expect(started.status).toBe(200)
     expect(target.status).toBe('in_progress')
-    expect(vehicle.status).toBe('maintenance')
-    expect(vehicle.maintenanceStatus).toBe('overdue')
+    expect(vehicle.status).toBe('service')
+    expect(vehicle.serviceStatus).toBe('overdue')
 
-    const completed = await fetch(`${BASE}/api/maintenance/${target.id}/status`, {
+    const completed = await fetch(`${BASE}/api/services/${target.id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status: 'completed' }),
     })
     expect(completed.status).toBe(200)
     expect(target.status).toBe('completed')
     expect(vehicle.status).toBe('available')
-    expect(vehicle.maintenanceStatus).toBe('overdue')
+    expect(vehicle.serviceStatus).toBe('overdue')
   })
 })
 

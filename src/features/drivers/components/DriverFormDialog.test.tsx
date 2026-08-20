@@ -17,7 +17,7 @@ function renderDialog(driver?: (typeof db.drivers)[number]) {
 describe('DriverFormDialog', () => {
   it('renders empty fields in create mode', () => {
     renderDialog()
-    expect(screen.getByRole('heading', { name: 'Add driver' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Add Driver' })).toBeInTheDocument()
     expect(screen.getByLabelText('Name')).toHaveValue('')
   })
 

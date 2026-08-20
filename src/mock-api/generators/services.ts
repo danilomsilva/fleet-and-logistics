@@ -1,28 +1,28 @@
 import { faker } from '@faker-js/faker'
-import type { MaintenanceRecord } from '../schemas/maintenance'
+import type { ServiceRecord } from '../schemas/service'
 import {
-  maintenancePrioritySchema,
-  maintenanceStatusSchema,
-  maintenanceTypeSchema,
-} from '../schemas/maintenance'
+  servicePrioritySchema,
+  serviceStatusSchema,
+  serviceTypeSchema,
+} from '../schemas/service'
 import type { Vehicle } from '../schemas/vehicle'
 
-export function generateMaintenanceRecords(
+export function generateServiceRecords(
   count: number,
   { vehicles }: { vehicles: Vehicle[] },
-): MaintenanceRecord[] {
+): ServiceRecord[] {
   return Array.from({ length: count }, (_, i) => {
-    const id = `MNT-${String(i + 1).padStart(3, '0')}`
-    const status = faker.helpers.arrayElement(maintenanceStatusSchema.options)
+    const id = `SVC-${String(i + 1).padStart(3, '0')}`
+    const status = faker.helpers.arrayElement(serviceStatusSchema.options)
     const scheduledDate =
       status === 'completed' ? faker.date.recent({ days: 30 }) : faker.date.soon({ days: 30 })
 
     return {
       id,
       vehicleId: faker.helpers.arrayElement(vehicles).id,
-      maintenanceType: faker.helpers.arrayElement(maintenanceTypeSchema.options),
+      serviceType: faker.helpers.arrayElement(serviceTypeSchema.options),
       status,
-      priority: faker.helpers.arrayElement(maintenancePrioritySchema.options),
+      priority: faker.helpers.arrayElement(servicePrioritySchema.options),
       description: faker.lorem.sentence(),
       scheduledDate: scheduledDate.toISOString(),
       completionDate:

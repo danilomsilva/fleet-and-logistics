@@ -6,7 +6,7 @@ const NAV_ITEMS: [label: string, path: string][] = [
   ['Deliveries', '/deliveries'],
   ['Vehicles', '/vehicles'],
   ['Drivers', '/drivers'],
-  ['Maintenance', '/maintenance'],
+  ['Services', '/services'],
   ['Alerts', '/alerts'],
 ]
 

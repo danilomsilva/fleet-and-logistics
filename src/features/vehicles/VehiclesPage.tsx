@@ -38,7 +38,7 @@ export function VehiclesPage() {
     <div className="space-y-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Vehicles</h1>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Search</span>
             <Input
@@ -90,11 +90,11 @@ export function VehiclesPage() {
               </SelectContent>
             </Select>
           </div>
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus aria-hidden="true" />
+            Add Vehicle
+          </Button>
         </div>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
-          <Plus aria-hidden="true" />
-          Add vehicle
-        </Button>
       </div>
       <VehiclesTable />
       {addOpen && <VehicleFormDialog onOpenChange={setAddOpen} />}
