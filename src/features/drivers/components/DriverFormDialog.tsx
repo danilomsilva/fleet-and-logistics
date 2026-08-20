@@ -25,6 +25,10 @@ import { driverInputSchema, driverStatusSchema } from '@/mock-api/schemas/driver
 import type { Driver } from '@/mock-api/schemas/driver'
 import { DRIVER_STATUS_CONFIG } from '../driver-status-config'
 
+const STATUS_ITEMS: Record<string, string> = Object.fromEntries(
+  driverStatusSchema.options.map((status) => [status, DRIVER_STATUS_CONFIG[status].label]),
+)
+
 export interface DriverFormDialogProps {
   /** Called with `false` to close. The caller should stop rendering this
    * component in response, so a fresh instance (and fresh form state) mounts
@@ -44,6 +48,10 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
   const [name, setName] = useState(driver?.name ?? '')
   const [status, setStatus] = useState<string>(driver?.status ?? 'available')
   const [assignedVehicleId, setAssignedVehicleId] = useState(driver?.assignedVehicleId ?? '')
+
+  const vehicleItems: Record<string, string> = Object.fromEntries(
+    (vehiclesData?.data ?? []).map((vehicle) => [vehicle.id, vehicle.name]),
+  )
 
   function handleSubmit() {
     const parsed = driverInputSchema.safeParse({
@@ -89,14 +97,14 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Status</span>
-            <Select value={status} onValueChange={(v) => v && setStatus(v)}>
+            <Select items={STATUS_ITEMS} value={status} onValueChange={(v) => v && setStatus(v)}>
               <SelectTrigger className="w-full" aria-label="Driver status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {driverStatusSchema.options.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {DRIVER_STATUS_CONFIG[option].label}
+                {Object.entries(STATUS_ITEMS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -104,14 +112,18 @@ export function DriverFormDialog({ onOpenChange, driver }: DriverFormDialogProps
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Assigned vehicle</span>
-            <Select value={assignedVehicleId} onValueChange={(v) => v && setAssignedVehicleId(v)}>
+            <Select
+              items={vehicleItems}
+              value={assignedVehicleId}
+              onValueChange={(v) => v && setAssignedVehicleId(v)}
+            >
               <SelectTrigger className="w-full" aria-label="Assigned vehicle">
                 <SelectValue placeholder="Select a vehicle" />
               </SelectTrigger>
               <SelectContent>
-                {vehiclesData?.data.map((vehicle) => (
-                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.name}
+                {Object.entries(vehicleItems).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>

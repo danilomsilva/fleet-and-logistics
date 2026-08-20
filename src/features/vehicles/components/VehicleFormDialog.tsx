@@ -27,6 +27,15 @@ import {
   vehicleTypeSchema,
 } from '@/mock-api/schemas/vehicle'
 import type { Vehicle } from '@/mock-api/schemas/vehicle'
+import { VEHICLE_STATUS_CONFIG } from '../vehicle-status-config'
+
+const TYPE_ITEMS: Record<string, string> = Object.fromEntries(
+  vehicleTypeSchema.options.map((type) => [type, type[0].toUpperCase() + type.slice(1)]),
+)
+
+const STATUS_ITEMS: Record<string, string> = Object.fromEntries(
+  vehicleStatusSchema.options.map((status) => [status, VEHICLE_STATUS_CONFIG[status].label]),
+)
 
 const UNASSIGNED = 'unassigned'
 
@@ -52,6 +61,11 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
   const [status, setStatus] = useState<string>(vehicle?.status ?? 'available')
   const [driverId, setDriverId] = useState(vehicle?.driverId ?? UNASSIGNED)
   const [mileage, setMileage] = useState(String(vehicle?.mileage ?? 0))
+
+  const driverItems: Record<string, string> = {
+    [UNASSIGNED]: 'Unassigned',
+    ...Object.fromEntries((driversData?.data ?? []).map((driver) => [driver.id, driver.name])),
+  }
 
   function handleSubmit() {
     const parsed = vehicleInputSchema.safeParse({
@@ -111,14 +125,14 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <span className="text-sm font-medium">Type</span>
-              <Select value={type} onValueChange={(v) => v && setType(v)}>
+              <Select items={TYPE_ITEMS} value={type} onValueChange={(v) => v && setType(v)}>
                 <SelectTrigger className="w-full" aria-label="Vehicle type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {vehicleTypeSchema.options.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
+                  {Object.entries(TYPE_ITEMS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -126,14 +140,14 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
             </div>
             <div className="space-y-1">
               <span className="text-sm font-medium">Status</span>
-              <Select value={status} onValueChange={(v) => v && setStatus(v)}>
+              <Select items={STATUS_ITEMS} value={status} onValueChange={(v) => v && setStatus(v)}>
                 <SelectTrigger className="w-full" aria-label="Vehicle status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {vehicleStatusSchema.options.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option.replace('_', ' ')}
+                  {Object.entries(STATUS_ITEMS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -142,15 +156,14 @@ export function VehicleFormDialog({ onOpenChange, vehicle }: VehicleFormDialogPr
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium">Driver</span>
-            <Select value={driverId} onValueChange={(v) => v && setDriverId(v)}>
+            <Select items={driverItems} value={driverId} onValueChange={(v) => v && setDriverId(v)}>
               <SelectTrigger className="w-full" aria-label="Assigned driver">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
-                {driversData?.data.map((driver) => (
-                  <SelectItem key={driver.id} value={driver.id}>
-                    {driver.name}
+                {Object.entries(driverItems).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>

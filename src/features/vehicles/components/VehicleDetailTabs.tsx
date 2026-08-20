@@ -65,7 +65,7 @@ export function VehicleMaintenanceTab({ vehicle }: { vehicle: Vehicle }) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-4">
         <div className="space-y-1 rounded-lg border p-4">
-          <p className="text-xs text-muted-foreground">Maintenance status</p>
+          <p className="text-xs text-muted-foreground">Service status</p>
           <StatusBadge
             label={statusConfig.label}
             tone={statusConfig.tone}
@@ -80,7 +80,7 @@ export function VehicleMaintenanceTab({ vehicle }: { vehicle: Vehicle }) {
       {data && data.data.length === 0 ? (
         <EmptyState
           title="No service history"
-          description="No maintenance records for this vehicle yet."
+          description="No service records for this vehicle yet."
         />
       ) : (
         <ul className="space-y-2">

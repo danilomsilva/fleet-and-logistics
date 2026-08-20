@@ -92,8 +92,8 @@ test('vehicle detail page shows tabs and switches between them', async ({ page }
   await expect(page.getByRole('tab', { name: 'Overview' })).toBeVisible()
   await expect(page.getByText('Registration')).toBeVisible()
 
-  await page.getByRole('tab', { name: 'Maintenance' }).click()
-  await expect(page.getByText('Maintenance status')).toBeVisible()
+  await page.getByRole('tab', { name: 'Service' }).click()
+  await expect(page.getByText('Service status')).toBeVisible()
 
   await page.getByRole('tab', { name: 'Activity' }).click()
   await expect(page.getByRole('tab', { name: 'Activity', selected: true })).toBeVisible()
