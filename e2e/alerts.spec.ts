@@ -4,8 +4,8 @@ test('Alerts table renders and the status filter narrows results', async ({ page
   await page.goto('/alerts')
   await expect(page.getByRole('columnheader', { name: 'Message' })).toBeVisible()
 
-  await page.getByRole('combobox', { name: 'Filter by status' }).click()
-  await page.getByRole('option', { name: 'Active', exact: true }).click()
+  await page.getByRole('button', { name: 'Filters' }).click()
+  await page.getByRole('menuitemradio', { name: 'Active', exact: true }).click()
   await expect(page).toHaveURL(/status=active/)
 })
 

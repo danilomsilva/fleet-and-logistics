@@ -4,8 +4,8 @@ test('Services table renders and the status filter narrows results', async ({ pa
   await page.goto('/services')
   await expect(page.getByRole('columnheader', { name: 'Record ID' })).toBeVisible()
 
-  await page.getByRole('combobox', { name: 'Filter by status' }).click()
-  await page.getByRole('option', { name: 'Due', exact: true }).click()
+  await page.getByRole('button', { name: 'Filters' }).click()
+  await page.getByRole('menuitemradio', { name: 'Due', exact: true }).click()
   await expect(page).toHaveURL(/status=due/)
 })
 
@@ -19,9 +19,12 @@ test('starting a service record moves it to in progress, then completing it fini
     const res = await fetch('/api/services?pageSize=200')
     const records = (await res.json()).data
     const pending = records.filter((r: { status: string }) => r.status !== 'completed')
+    const startable = records.filter(
+      (r: { status: string }) => r.status === 'scheduled' || r.status === 'due',
+    )
     const isOnlyPendingForVehicle = (r: { vehicleId: string }) =>
       pending.filter((o: { vehicleId: string }) => o.vehicleId === r.vehicleId).length === 1
-    const record = pending.find(isOnlyPendingForVehicle)
+    const record = startable.find(isOnlyPendingForVehicle)
     if (!record) return null
 
     const vehicle = await fetch(`/api/vehicles/${record.vehicleId}`).then((r) => r.json())
@@ -56,7 +59,7 @@ test('starting a service record moves it to in progress, then completing it fini
     .poll(() =>
       page.evaluate((id) => fetch(`/api/vehicles/${id}`).then((r) => r.json()), vehicleId),
     )
-    .toMatchObject({ status: 'available' })
+    .toMatchObject({ status: 'available', serviceStatus: 'up_to_date' })
 })
 
 test('adding, editing, and deleting a service record works end to end', async ({ page }) => {

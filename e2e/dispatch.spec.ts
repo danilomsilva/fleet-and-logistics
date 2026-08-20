@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test'
 
-test('Dispatch shows the map and the unassigned deliveries panel', async ({ page }) => {
+test('Dispatch shows the map and the new deliveries panel', async ({ page }) => {
   await page.goto('/dispatch')
   await expect(page.getByRole('heading', { name: 'Dispatch' })).toBeVisible()
-  await expect(page.getByText('Unassigned deliveries')).toBeVisible()
-  await expect(page.getByRole('img', { name: /Map of fleet vehicles/ })).toBeVisible()
+  await expect(page.getByText('New deliveries available')).toBeVisible()
+  await expect(page.getByRole('img', { name: /Map of deliveries/ })).toBeVisible()
 })
 
 test('the MapLibre worker loads and actually fetches basemap tiles (not just the background layer)', async ({
@@ -22,7 +22,7 @@ test('the MapLibre worker loads and actually fetches basemap tiles (not just the
   })
 
   await page.goto('/dispatch')
-  await expect(page.getByRole('img', { name: /Map of fleet vehicles/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /Map of deliveries/ })).toBeVisible()
   // Real network calls to the public demo tile server, so give this more
   // headroom than a local-only assertion needs (CI runners can be slower).
   await expect.poll(() => tileRequests.length, { timeout: 20000 }).toBeGreaterThan(0)
@@ -31,23 +31,31 @@ test('the MapLibre worker loads and actually fetches basemap tiles (not just the
   expect(workers.some((w) => w.url().includes('maplibre-gl-worker'))).toBe(true)
 })
 
-test('assigning a delivery through the wizard walks driver -> vehicle -> review and confirms', async ({
+test('assigning a delivery through the wizard walks driver -> review and confirms', async ({
   page,
 }) => {
   await page.goto('/dispatch')
-  await expect(page.getByText('Unassigned deliveries')).toBeVisible()
+  await expect(page.getByText('New deliveries available')).toBeVisible()
 
-  // Pick a pending delivery whose required vehicle type actually has
-  // available stock (not every type does in the seeded dataset), the same
-  // way e2e/deliveries.spec.ts does, so the vehicle step never lands empty.
+  // Pick a new delivery for which at least one available driver's own
+  // assigned vehicle matches the required type (not every type has stock in
+  // the seeded dataset), the same way e2e/deliveries.spec.ts does, so the
+  // driver step never lands empty.
   const target = await page.evaluate(async () => {
-    const deliveriesRes = await fetch('/api/deliveries?status=pending&pageSize=200')
+    const deliveriesRes = await fetch('/api/deliveries?status=new&pageSize=200')
     const deliveries = (await deliveriesRes.json()).data
+    const driversRes = await fetch('/api/drivers?status=available&pageSize=200')
+    const drivers = (await driversRes.json()).data
+    const vehiclesRes = await fetch('/api/vehicles?status=available&pageSize=200')
+    const vehicleById = new Map(
+      (await vehiclesRes.json()).data.map((v: { id: string }) => [v.id, v]),
+    )
     for (const delivery of deliveries) {
-      const vehiclesRes = await fetch(
-        `/api/vehicles?status=available&type=${delivery.requiredVehicleType}&pageSize=1`,
-      )
-      if ((await vehiclesRes.json()).total > 0) return delivery.id
+      const hasEligibleDriver = drivers.some((d: { assignedVehicleId: string | null }) => {
+        const vehicle = d.assignedVehicleId ? vehicleById.get(d.assignedVehicleId) : null
+        return vehicle && (vehicle as { type: string }).type === delivery.requiredVehicleType
+      })
+      if (hasEligibleDriver) return delivery.id
     }
     return null
   })
@@ -64,11 +72,6 @@ test('assigning a delivery through the wizard walks driver -> vehicle -> review 
   await expect(driverButtons.first()).toBeVisible()
   await driverButtons.first().click()
 
-  await expect(page.getByText('Vehicle', { exact: true })).toBeVisible()
-  const vehicleButtons = page.getByRole('dialog').locator('ul button')
-  await expect(vehicleButtons.first()).toBeVisible()
-  await vehicleButtons.first().click()
-
   await expect(page.getByText('Review', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Confirm assignment' }).click()
 
@@ -84,16 +87,23 @@ test('assigning via Dispatch also updates the driver and vehicle records themsel
   // "unassigned"/"available" afterwards, and the driver stayed selectable
   // for a second delivery at the same time.
   await page.goto('/dispatch')
-  await expect(page.getByText('Unassigned deliveries')).toBeVisible()
+  await expect(page.getByText('New deliveries available')).toBeVisible()
 
   const target = await page.evaluate(async () => {
-    const deliveriesRes = await fetch('/api/deliveries?status=pending&pageSize=200')
+    const deliveriesRes = await fetch('/api/deliveries?status=new&pageSize=200')
     const deliveries = (await deliveriesRes.json()).data
+    const driversRes = await fetch('/api/drivers?status=available&pageSize=200')
+    const drivers = (await driversRes.json()).data
+    const vehiclesRes = await fetch('/api/vehicles?status=available&pageSize=200')
+    const vehicleById = new Map(
+      (await vehiclesRes.json()).data.map((v: { id: string }) => [v.id, v]),
+    )
     for (const delivery of deliveries) {
-      const vehiclesRes = await fetch(
-        `/api/vehicles?status=available&type=${delivery.requiredVehicleType}&pageSize=1`,
-      )
-      if ((await vehiclesRes.json()).total > 0) return delivery.id
+      const hasEligibleDriver = drivers.some((d: { assignedVehicleId: string | null }) => {
+        const vehicle = d.assignedVehicleId ? vehicleById.get(d.assignedVehicleId) : null
+        return vehicle && (vehicle as { type: string }).type === delivery.requiredVehicleType
+      })
+      if (hasEligibleDriver) return delivery.id
     }
     return null
   })
@@ -103,7 +113,6 @@ test('assigning via Dispatch also updates the driver and vehicle records themsel
   await row.getByRole('button', { name: 'Assign' }).click()
 
   const dialog = page.getByRole('dialog')
-  await dialog.locator('ul button').first().click()
   await dialog.locator('ul button').first().click()
 
   // Read the confirmed selection back from the Review step's own summary

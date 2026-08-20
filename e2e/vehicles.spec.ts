@@ -18,8 +18,8 @@ test('Vehicles table renders data and search filters it', async ({ page }) => {
 
 test('Vehicles status filter narrows results and updates the URL', async ({ page }) => {
   await page.goto('/vehicles')
-  await page.getByRole('combobox').first().click()
-  await page.getByRole('option', { name: 'Available', exact: true }).click()
+  await page.getByRole('button', { name: 'Filters' }).click()
+  await page.getByRole('menuitemradio', { name: 'Available', exact: true }).click()
 
   await expect(page).toHaveURL(/status=available/)
 })

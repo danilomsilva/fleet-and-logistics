@@ -7,8 +7,8 @@ test('Drivers table renders data and status filter narrows results', async ({ pa
   const rows = page.locator('tbody tr')
   await expect(rows.first().getByRole('link')).not.toHaveText('')
 
-  await page.getByRole('combobox').first().click()
-  await page.getByRole('option', { name: 'Available', exact: true }).click()
+  await page.getByRole('button', { name: 'Filters' }).click()
+  await page.getByRole('menuitemradio', { name: 'Available', exact: true }).click()
   await expect(page).toHaveURL(/status=available/)
 })
 
@@ -32,13 +32,26 @@ test('adding, editing, and deleting a driver works end to end', async ({ page })
   await page.goto('/drivers')
   await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible()
 
+  // The seeded fleet pairs every driver with a vehicle 1:1. A vehicle isn't
+  // required to add a driver, but free one up anyway (deleting an existing
+  // driver through the real UI — a raw API call would bypass React Query's
+  // cache invalidation) so this test can still exercise picking a real one
+  // rather than only ever seeing "Unassigned".
+  await page.locator('tbody tr').first().getByRole('link').click()
+  await page.getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByText('removed')).toBeVisible()
+  await expect(page).toHaveURL('/drivers')
+
   // Add
   await page.getByRole('button', { name: 'Add Driver' }).click()
   const addDialog = page.getByRole('dialog')
   await expect(addDialog.getByRole('heading', { name: 'Add Driver' })).toBeVisible()
+  await expect(addDialog.getByText('New drivers start as Available')).toBeVisible()
   await addDialog.getByLabel('Name').fill('E2E Test Driver')
   await addDialog.getByRole('combobox', { name: 'Assigned vehicle' }).click()
-  await page.getByRole('option').first().click()
+  // Index 0 is "Unassigned" — pick the first real vehicle instead.
+  await page.getByRole('option').nth(1).click()
   await addDialog.getByRole('button', { name: 'Add Driver' }).click()
   await expect(page.getByText(/added\./)).toBeVisible()
 

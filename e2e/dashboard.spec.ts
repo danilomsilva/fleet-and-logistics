@@ -5,10 +5,14 @@ test('Dashboard renders KPIs and widgets, and the chart period toggle switches s
 }) => {
   await page.goto('/')
 
-  await expect(page.getByText('Total vehicles')).toBeVisible()
-  await expect(page.getByText('Active deliveries')).toBeVisible()
+  await expect(page.getByText('Vehicles requiring service')).toBeVisible()
+  await expect(page.getByText('Available drivers')).toBeVisible()
+  await expect(page.getByText('Deliveries delayed')).toBeVisible()
+  await expect(page.getByText('Deliveries today')).toBeVisible()
   await expect(page.getByText('Fleet status')).toBeVisible()
   await expect(page.getByText('Top alerts')).toBeVisible()
+  await expect(page.getByText('Driver availability')).toBeVisible()
+  await expect(page.getByText('Services by status')).toBeVisible()
   await expect(page.getByText('Recent activity')).toBeVisible()
 
   const sevenDay = page.getByRole('button', { name: '7d' })
