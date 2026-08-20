@@ -19,15 +19,17 @@ function renderDashboard() {
 describe('DashboardPage', () => {
   it('loads and renders KPI cards and widgets', async () => {
     renderDashboard()
-    expect(await screen.findByText('Total vehicles')).toBeInTheDocument()
+    expect(await screen.findByText('Vehicles requiring service')).toBeInTheDocument()
     expect(screen.getByText('Deliveries by status')).toBeInTheDocument()
     expect(screen.getByText('Fleet status')).toBeInTheDocument()
     expect(screen.getByText('Top alerts')).toBeInTheDocument()
+    expect(screen.getByText('Driver availability')).toBeInTheDocument()
+    expect(screen.getByText('Services by status')).toBeInTheDocument()
   })
 
   it('has no detectable accessibility violations once loaded', async () => {
     const { container } = renderDashboard()
-    await waitFor(() => expect(screen.getByText('Total vehicles')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Vehicles requiring service')).toBeInTheDocument())
     const results = await axe(container)
     expect(results.violations).toEqual([])
   })
